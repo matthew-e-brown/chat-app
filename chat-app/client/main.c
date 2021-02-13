@@ -1,3 +1,32 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat Client
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      Connects to the running server and allows a user to send
+ *                broadcasts and whispsers back and forth between other
+ *                connected clients.
+ *
+ * @usage:        ./client.o name addr
+ *
+ * @parameters:   - name :: the username of the connecting client.  
+ *                - addr :: the remote address to connect to. Can be either a
+ *                          hostname or an IP address.
+ *
+ * @example:      ./client.o matt localhost
+ *
+ * ===========================================================================
+ *
+ * Aside from this `main.c`, all other files in this directory have their
+ * @purpose rule filled with a description of the files *themselves*, as opposed
+ * to the whole program.
+ *
+ */
+
+
 // -- Includes
 
 #include <stdio.h>
@@ -210,6 +239,8 @@ int main(int argc, char* argv[]) {
   }
 
   while (1) {
+    // >> Wait for events on stdin and server socket
+
     num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
 
     if (num_events == -1) {
@@ -240,7 +271,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  endwin();
+  endwin(); // close ncurses before quitting
   return 0;
 }
 

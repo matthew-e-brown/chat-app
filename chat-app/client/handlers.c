@@ -1,3 +1,34 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         handlers.c
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      This file holds various helper functions and handlers for the
+ *                main thread to call upon. A few of them call one another.
+ *
+ *              - handle_input()  
+ *                > Reads through the text_window curses window for user
+ *                  input, manipulating the global current_message buffer as
+ *                  required to respect the user's changes.
+ *
+ *              - send_message()  
+ *                > Sends the current (global) message buffer to the (global)
+ *                  server socket.
+ *
+ *              - display_message()  
+ *                > Writes the message of a Packet to the screen, with nice
+ *                  colouring and formatting.
+ *
+ *              - display_own_message()  
+ *                > Writes a string to the screen with the formatting for
+ *                  "you messaged X."
+ *
+ */
+
+
 #ifndef __CLIENT_CONSTANTS__
 #include "./constants.h"
 #endif
@@ -125,6 +156,10 @@ void handle_input() {
 }
 
 
+/**
+ * Sends the global `current_message` buffer to the global `server_sock`. Also
+ * includes parsing
+ */
 void send_message() {
   Packet message;
 
@@ -147,18 +182,18 @@ void send_message() {
     }
 
   } else {
-    // >> '::' was found
+    // >> '::' was found, it's a whisper
 
-    // italics/ligatures may make this diagram a bit off ...
+    // (italics/ligatures may make this diagram a bit off ...)
     //
     //    split split+2
     //    ____↓_↓_____________
     //    name::message here!!
     //
     // -> name = current_message
-    //  -> length = split - current_message
+    //     -> length = split - current_message
     // -> message = split + 2
-    //  -> length = MAX_MSG_LEN - (split + 2 - current_message)
+    //     -> length = MAX_MSG_LEN - (split + 2 - current_message)
 
     // >> find the lengths of both message halves
 
@@ -199,12 +234,13 @@ void send_message() {
  */
 void display_own_message(char* str, int whisper, char* dest) {
   wattr_on(chat_window, COLOR_PAIR(OWN_PAIR), NULL);
-  switch (whisper) {
-    case 0: wprintw(chat_window, "You said: "); break;
-    case 1: wprintw(chat_window, "You whispered to %s: ", dest); break;
-  }
+
+  if (whisper) wprintw(chat_window, "You whispered to %s: ", dest);
+  else wprintw(chat_window, "You said: ");
+
   wattr_off(chat_window, COLOR_PAIR(OWN_PAIR), NULL);
   wprintw(chat_window, "%s\n", str);
+
   wrefresh(chat_window);
 }
 
