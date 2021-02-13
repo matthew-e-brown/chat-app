@@ -1,3 +1,17 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         global.c
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      This file holds many global constants for both the server and
+ *                the client to refer to.
+ *
+ */
+
+
 #define __GLOBAL__
 
 #define PR 0 // Read side of pipes
@@ -10,28 +24,32 @@
 
 #define NUM_ELEMS(x) (sizeof(x) / sizeof((x)[0]))
 
-#define MSG_LOGIN 1
-#define MSG_WHISPER 2
-#define MSG_BROADCAST 3
-#define MSG_COMMAND 4
+// The "verbs" that each Packet can be describing
 
-#define MSG_ANNOUNCE 10
-#define MSG_ACKNOWLEDGE 11
-#define MSG_ACK_WITH_ERR 12
+#define MSG_LOGIN 1           // the client wishes to login
+#define MSG_WHISPER 2         // the client is whispering
+#define MSG_BROADCAST 3       // the client is broadcasting
+#define MSG_COMMAND 4         // the client is sending a command
 
-#define MAX_NAME_LEN 16
-#define MAX_MSG_LEN 256
+#define MSG_ANNOUNCE 10       // the server is sending an announcement
+#define MSG_ACKNOWLEDGE 11    // the server is acknowledging a client message
+#define MSG_ACK_WITH_ERR 12   // the server is telling the client of an error
+
+#define MAX_NAME_LEN 16       // the maximum length that a username can be
+#define MAX_MSG_LEN 256       // the maximum length that a message can be
 
 #include <stdlib.h>
 #include <string.h>
 
+// Structs for the packet datatypes
+
 struct header {
-  unsigned short application_version;
-  unsigned char message_type;
-  unsigned short packet_count;
-  unsigned short packet_index;
-  char sender_name[MAX_NAME_LEN];
-  char receiver_name[MAX_NAME_LEN];
+  unsigned short application_version; // Which version of Chat App is this?
+  unsigned char message_type;         // What verb is this message for?
+  unsigned short packet_count;        // How many packets are carrying it?
+  unsigned short packet_index;        // Which of those packets is this?
+  char sender_name[MAX_NAME_LEN];     // Who is it from?
+  char receiver_name[MAX_NAME_LEN];   // Who is it going to?
 
   // keep extra space for future versions of the application
   char __padding__[
@@ -41,8 +59,8 @@ struct header {
 };
 
 typedef struct packet {
-  struct header header;
-  char body[MAX_MSG_LEN];
+  struct header header;       // Packet metadata
+  char body[MAX_MSG_LEN];     // The raw bytes of the message
 } Packet;
 
 
@@ -63,15 +81,17 @@ struct header create_header(
   h.application_version = APP_VER;
   h.message_type = message_type;
 
-  if (sender_name != NULL)
+  if (sender_name != NULL) {
     strncpy(h.sender_name, sender_name, MAX_NAME_LEN);
-  else
+  } else {
     memset(h.sender_name, 0, MAX_NAME_LEN);
+  }
 
-  if (receiver_name != NULL)
+  if (receiver_name != NULL) {
     strncpy(h.receiver_name, receiver_name, MAX_NAME_LEN);
-  else
+  } else {
     memset(h.receiver_name, 0, MAX_NAME_LEN);
+  }
 
   memset(h.__padding__, 0, sizeof h.__padding__);
 
