@@ -1,9 +1,27 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         users.c
+ *
+ * @author:       Matthew Brown; #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      This file holds definitions for the types that the server uses
+ *                to track connected users. It also brings with it a few helper
+ *                functions for searching arrays for pointers to those users and
+ *                the threads they may be stored in.
+ *
+ *                The Thread type is used to hold information a client-thread
+ *                ( @see client_thread.c ) may need to perform its duties.
+ *                Each thread gets one of these structs.
+ */
+
 #define __USERS__
 
 #include <string.h>
 
 // Include globals and constants (mostly for IDE highlighting, the ifndefs will
-// protect them during compilation)
+// protect them from re-including/looping during compilation)
 
 #ifndef __GLOBAL__
 #include "../global.c"

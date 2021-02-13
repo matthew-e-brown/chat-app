@@ -1,3 +1,26 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         commands.c
+ *
+ * @author:       Matthew Brown; #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      This file holds the functions for each of the / commands that
+ *                the user can ask of the server. Alongside the function
+ *                definitions are a type definition and helper function to get
+ *                the pointer to the right function.
+ *
+ * @example:      The user sends "who" in a MSG_COMMAND packet. The helper
+ *                function then determines which function, if any, the server
+ *                must execute to perform that command. All command functions
+ *                accept a pointer to a Packet, into the body of which they copy
+ *                their response. This is shown by the typedef of the command_pt
+ *                type.
+ *
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,23 +44,24 @@ extern pthread_mutex_t users_lock;                   // lock for users
 extern Thread client_threads[MAX_CONNECTED_USERS];   // all threads
 extern pthread_mutex_t thread_lock;                  // lock for threads
 
-// this is kept small just to save memory space
-
+// the longest length commands strings can be
 #define MAX_COMMAND_LENGTH 8
+
+// type of funcion pointers for commands
 typedef int (*command_pt)(Packet* message);
 
 // -- Command function headers
 
 int command_who(Packet* message);
 
-// >> Struct list to hold all the commands linked with their names
+// Struct list to hold all the commands linked with their names
 
 struct command_pair {
   const char name[MAX_COMMAND_LENGTH];
   const command_pt func;
 } commands[] = {
 
-  { "who", &command_who }
+  { "who", &command_who } // link "who" with the pointer to the function
 
 };
 

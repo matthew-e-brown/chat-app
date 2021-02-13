@@ -1,3 +1,27 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App Server
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      Runs a server to accept clients and allow them to send
+ *                messages back and forth between one another.
+ *
+ * @usage:        ./server.o
+ *
+ * @parameters:   None.
+ *
+ * ===========================================================================
+ *
+ * Aside from this `main.c`, all other files in this directory have their
+ * @purpose rule filled with a description of the files *themselves*, as opposed
+ * to the whole program.
+ *
+ */
+
+
 // -- Includes
 
 #include <stdio.h>
@@ -288,8 +312,7 @@ int main() {
           // >> determine which command they want
           command_pt command = get_command(message.body);
 
-          int response; // default "from server" type
-
+          int response;
           if (command == NULL) {
             // command not found, print into buffer saying it couldn't be found
             response = MSG_ACK_WITH_ERR;

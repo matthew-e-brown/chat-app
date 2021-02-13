@@ -1,9 +1,18 @@
-#define CLIENT_EPOLL_MAX 10
-
 /**
- * This file contains helper functions for the main thread. They're here so as
- * to keep clutter out of main.
+ * COIS-4310H: Chat App
+ *
+ * @name:         client_thread.c
+ *
+ * @author:       Matthew Brown; #0648289
+ * @date:         February 1st to February 12th, 2021
+ *
+ * @purpose:      This file contains basically one function. This function is
+ *                the one that is passed to each pthread, and it is responsible
+ *                for listening to and responding to exactly one connected
+ *                client socket.
  */
+
+#define CLIENT_EPOLL_MAX 10
 
 #include <stdio.h>
 #include <stdlib.h>
