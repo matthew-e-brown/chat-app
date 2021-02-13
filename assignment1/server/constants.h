@@ -1,0 +1,3 @@
+#define __SERVER_CONSTANTS__
+
+#define MAX_CONNECTED_USERS 8
