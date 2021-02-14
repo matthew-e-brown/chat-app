@@ -32,7 +32,7 @@
 #define MSG_COMMAND 4         // the client is sending a command
 
 #define MSG_ANNOUNCE 10       // the server is sending an announcement
-#define MSG_ACKNOWLEDGE 11    // the server is acknowledging a client message
+#define MSG_ACKNOWLEDGE 11    // one party is acknowledging another's message
 #define MSG_ACK_WITH_ERR 12   // the server is telling the client of an error
 
 #define MAX_NAME_LEN 16       // the maximum length that a username can be
@@ -45,7 +45,7 @@
 
 struct header {
   unsigned short application_version; // Which version of Chat App is this?
-  unsigned char message_type;         // What verb is this message for?
+  unsigned short message_type;        // What verb is this message for?
   unsigned short packet_count;        // How many packets are carrying it?
   unsigned short packet_index;        // Which of those packets is this?
   char sender_name[MAX_NAME_LEN];     // Who is it from?
@@ -53,8 +53,7 @@ struct header {
 
   // keep extra space for future versions of the application
   char __padding__[
-    128 - (sizeof(unsigned short) * 3) - (sizeof(unsigned char))
-        - (sizeof(char) * MAX_NAME_LEN * 2)
+    128 - (sizeof(unsigned short) * 4) - (sizeof(char) * MAX_NAME_LEN * 2)
   ];
 };
 
