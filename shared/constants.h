@@ -7,13 +7,14 @@
 
 #define APP_VER 2
 #define PORT 58289
-#define EPOLL_MAX_EVENTS 10
+#define MAX_EPOLL_EVENTS 10
 
-#define NUM_ELEMS(x) (sizeof(x) / sizeof((x)[0]))
+#define NUM_ELEMS(x) (int)(sizeof(x) / sizeof((x)[0]))
+#define MIN(x,y) (x < y ? x : y)
 
 // -------- Messaging Verbs --------
 
-// Messages from either party
+// Messages from either party; internal; used by library functions only
 #define ACK_PACKET     0x01  // Acknowledge all packets successful
 #define ACK_PACK_ERR   0x0e  // Packet SHA hash error, please re-send
 #define TRANSFER_END   0x0f  // Cancel the transfer partway through
@@ -26,7 +27,9 @@
 
 // Messages from the server directly
 #define SRV_ANNOUNCE   0x21  // Server is announcing an update to all clients
-#define SRV_ERROR      0x22  // Server says, "something went wrong"; HTTP 500
+#define SRV_RESPONSE   0x22  // Server is replying to an individual client
+#define SRV_ERROR      0x23  // Server says, "something went wrong"; HTTP 500
+#define USR_ERROR      0x24  // Server says, "user did sometihng wrong"; 400
 
 // -------- Other Constants --------
 

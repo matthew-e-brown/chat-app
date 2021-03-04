@@ -1,10 +1,10 @@
-#define __MESSAGING__
+#define __GLOBAL_MESSAGING__
 
 #ifndef __GLOBAL_CONSTANTS__
 #include "constants.h"
 #endif
 
-
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/sha.h>
@@ -26,13 +26,14 @@ typedef struct packet {
     unsigned short message_type;
     unsigned short packet_count;
     unsigned short packet_index;
+    size_t total_length;
     char sender_name[USERNAME_MAX];
     char receiver_name[USERNAME_MAX];
-    char checksum[SHA_DIGEST_LENGTH];
+    unsigned char checksum[SHA_DIGEST_LENGTH];
 
     char __padding__[
       128 - (sizeof(unsigned short) * 4) - (sizeof(char) * USERNAME_MAX * 2)
-          - (sizeof(char) * SHA_DIGEST_LENGTH)
+          - (sizeof(char) * SHA_DIGEST_LENGTH) - (sizeof(size_t))
     ];
   } header;
   char data[PACKET_DATASIZE];
@@ -64,6 +65,7 @@ static void ping(int socket, unsigned short message_type) {
   packet.header.app_ver = APP_VER;
   packet.header.packet_count = 1;
   packet.header.packet_index = 0;
+  packet.header.total_length = 0;
 
   memset(packet.header.sender_name, 0, USERNAME_MAX);
   memset(packet.header.receiver_name, 0, USERNAME_MAX);
@@ -84,12 +86,13 @@ static void ping(int socket, unsigned short message_type) {
 int send_message(int socket, Message message) {
   Packet packet;
 
-  // How many chunks this packet will take
+  // How many chunks this packet will take?
   unsigned short packet_count = message.size / PACKET_DATASIZE + 1;
 
   packet.header.app_ver = APP_VER;
   packet.header.message_type = message.type;
   packet.header.packet_count = packet_count;
+  packet.header.total_length = message.size;
 
   strncpy(packet.header.sender_name, message.sender_name, USERNAME_MAX);
   strncpy(packet.header.receiver_name, message.receiver_name, USERNAME_MAX);
@@ -101,57 +104,69 @@ int send_message(int socket, Message message) {
     Packet response;
     packet.header.packet_index = p_indx;
 
-    // Determine which slice of the message buffer to send
+    // >> Determine which slice of the message buffer to send
     size_t offset = PACKET_DATASIZE * p_indx;
-    size_t amount = min(PACKET_DATASIZE, remaining_size);
+    size_t amount = MIN(PACKET_DATASIZE, remaining_size);
 
-    // Copy buffer chunk to packet and compute SHA1 hash
+    // >> Copy buffer chunk to packet and compute SHA1 hash
     memcpy(packet.data, message.body + offset, amount);
-    SHA1(packet.data, PACKET_DATASIZE, packet.header.checksum);
+    SHA1((unsigned char*)packet.data, PACKET_DATASIZE, packet.header.checksum);
 
-send_packet:
-    size_t b_sent = send(socket, &packet, sizeof(Packet), 0);
+send_packet:;
+    ssize_t b_sent = send(socket, &packet, sizeof(Packet), 0);
     if (b_sent == -1) {
       ping(socket, TRANSFER_END);
       return errno;
     }
 
-    size_t b_recv = recv(socket, &response, sizeof(Packet), 0);
+    ssize_t b_recv = recv(socket, &response, sizeof(Packet), 0);
     if (b_recv == -1) {
       ping(socket, TRANSFER_END);
       return errno;
     }
 
+    // >> Error check
     if (response.header.message_type == ACK_PACK_ERR) goto send_packet;
-    else if (response.header.message_type != ACK_PACKET) return -1;
+    else if (response.header.message_type != ACK_PACKET) {
+      ping(socket, TRANSFER_END);
+      return -1;
+    }
 
     p_indx += 1;
     remaining_size -= amount;
   }
 
+  return 0;
 }
 
 
 /**
  * Receives a message. Message is read in packet-by-packet.
  * @param socket The socket to read from
- * @return A pointer Message struct containing the sent message and metadata
+ * @return A Message struct containing the sent message and metadata; will be
+ * empty on error
  */
 Message recv_message(int socket) {
   Packet packet;
   Message output;
-  char sha_buff[SHA_DIGEST_LENGTH];
+  char last_pack = 0;
+  unsigned char sha_buff[SHA_DIGEST_LENGTH];
 
-  output.body = NULL; // seed value
+  // >> Seed/unset values
+  output.size = 0;
+  output.type = 0;
+  output.body = NULL;
 
   do {
-recv_packet: // retry receipt after acknowledging failure
+recv_packet:; // To retry receipt after acknowledging failure
 
-    // Receive the message
-    size_t b_recv = recv(socket, &packet, sizeof(Packet), 0);
+    // >> Receive the message
+    ssize_t b_recv = recv(socket, &packet, sizeof(Packet), 0);
     if (b_recv == -1) {
       ping(socket, ACK_PACK_ERR);
       goto recv_packet;
+    } else if (b_recv == 0) {
+      return output; // return earlier
     }
 
     // If the transfer was cancelled unexpectedly, return a blank message
@@ -166,28 +181,44 @@ recv_packet: // retry receipt after acknowledging failure
       return output;
     }
 
-    // Verify SHA1 hash
-    SHA1(packet.data, PACKET_DATASIZE, sha_buff);
-    if (strncmp(packet.header.checksum, sha_buff, SHA_DIGEST_LENGTH) != 0) {
+    // >> Check bool for if this is the last packet
+    last_pack = !(packet.header.packet_index + 1 < packet.header.packet_count);
+
+    // >> Verify SHA1 hash
+    SHA1((unsigned char*)packet.data, PACKET_DATASIZE, sha_buff);
+    if (
+      strncmp(
+        (char*)packet.header.checksum, (char*)sha_buff, SHA_DIGEST_LENGTH
+      ) != 0
+    ) {
       ping(socket, ACK_PACK_ERR);
       goto recv_packet;
     }
 
-    // Create the required fields for the output message if they're not set yet
-    if (output.body == NULL) {
+    // >> Create the required fields for the output message if not set yet
+    if (output.type == 0) {
       output.type = packet.header.message_type;
-      output.body = calloc(packet.header.packet_count, PACKET_DATASIZE);
+      output.size = packet.header.total_length;
+
+      if (output.size > 0) output.body = malloc(output.size);
 
       strncpy(output.receiver_name, packet.header.receiver_name, USERNAME_MAX);
       strncpy(output.sender_name, packet.header.sender_name, USERNAME_MAX);
     }
 
-    size_t offset = packet.header.packet_index * PACKET_DATASIZE;
-    memcpy(output.body + offset, packet.data, PACKET_DATASIZE);
+    // >> If there is body-text, copy it over into the buffer
+    if (output.size > 0) {
+      size_t offset = packet.header.packet_index * PACKET_DATASIZE;
+      size_t amount = !last_pack
+        ? PACKET_DATASIZE
+        : packet.header.total_length % PACKET_DATASIZE;
+
+      memcpy(output.body + offset, packet.data, amount);
+    }
 
     ping(socket, ACK_PACKET);
 
-  } while (packet.header.packet_index + 1 < packet.header.packet_count);
+  } while (!last_pack);
 
   return output;
 }
