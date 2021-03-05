@@ -11,8 +11,11 @@
 #ifndef __GLOBAL_MESSAGING__
 #include "../shared/messaging.c"
 #endif
+#ifndef __GLOBAL_FUNCTIONS__
+#include "../shared/utility.c"
+#endif
 #ifndef __SERVER_CONSTANTS__
-#include "./types.h"
+#include "./constants.h"
 #endif
 #ifndef __SERVER_FUNCTIONS__
 #include "./utility.c"
@@ -24,7 +27,6 @@ extern User users[CONN_LIMIT];
 extern Thread threads[CONN_LIMIT];
 extern pthread_mutex_t users_lock;
 extern pthread_mutex_t threads_lock;
-
 
 /**
  * Handles ongoing communication between a client and the server
@@ -55,7 +57,9 @@ void* client_thread(void* arg) {
 
         if (new_message.size == 0) {
           // >> User logged out
-          printf("User \"%s\" disconnecting.\n", this->user->username);
+
+          printf("%s User \"%s\" disconnecting.\n",
+            timestamp(), this->user->username);
 
           // >> Announce to other users that this user has disconnected
           Message announce;
@@ -65,7 +69,7 @@ void* client_thread(void* arg) {
 
           // >> Format output
           char body[28 + USERNAME_MAX]; // "User ... has ..." = 26, 28 in case
-          sprintf(body, "User %s has disconnected.", this->user->username);
+          sprintf(body, "User \"%s\" has disconnected.", this->user->username);
 
           announce.size = strlen(body);
           announce.body = malloc(announce.size);

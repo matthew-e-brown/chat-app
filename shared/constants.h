@@ -10,7 +10,7 @@
 #define MAX_EPOLL_EVENTS 10
 
 #define NUM_ELEMS(x) (int)(sizeof(x) / sizeof((x)[0]))
-#define MIN(x,y) (x < y ? x : y)
+#define MIN(x,y) (x <= y ? x : y)
 
 // -------- Messaging Verbs --------
 

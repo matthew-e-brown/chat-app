@@ -14,7 +14,7 @@
 #include "../shared/messaging.c"
 #endif
 #ifndef __SERVER_CONSTANTS__
-#include "./types.h"
+#include "./constants.h"
 #endif
 
 extern User users[CONN_LIMIT];

@@ -1,7 +1,7 @@
 #define __GLOBAL_MESSAGING__
 
 #ifndef __GLOBAL_CONSTANTS__
-#include "constants.h"
+#include "./constants.h"
 #endif
 
 #include <time.h>
@@ -100,7 +100,9 @@ int send_message(int socket, Message message) {
   size_t remaining_size = message.size;
   unsigned short p_indx = 0;
 
-  while (remaining_size > 0) {
+  // Use do-while in case message size is zero (meaning it contains metadata
+  // only). Like MSG_LOGIN, the important data is in sender_name
+  do {
     Packet response;
     packet.header.packet_index = p_indx;
 
@@ -134,7 +136,8 @@ send_packet:;
 
     p_indx += 1;
     remaining_size -= amount;
-  }
+
+  } while (remaining_size > 0);
 
   return 0;
 }

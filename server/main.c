@@ -18,8 +18,9 @@
 
 #include "../shared/constants.h"
 #include "../shared/messaging.c"
+#include "../shared/utility.c"
 
-#include "./types.h"
+#include "./constants.h"
 #include "./utility.c"
 #include "./thread.c"
 #include "./commands.c"
@@ -81,7 +82,9 @@ int main() {
 
   // >> Run socket setup steps
   setup_listen_socket(&master_sock);
-  printf("Server listening on port %i (socket FD of %i)\n", PORT, master_sock);
+
+  printf("%s Server listening on port %i (socket FD of %i)\n",
+    timestamp(), PORT, master_sock);
 
   // >> Run epoll setup steps
   rc = setup_epoll(&epoll_fd, (int[]){ master_sock, master_pipe[PR] });
@@ -140,6 +143,11 @@ int main() {
             const char error[] = "Invalid message type.";
             Thread* culprit = get_thread_by_username(from_thread.sender_name);
 
+            if (culprit == NULL) {
+              fprintf(stderr, "Its sending thread couldn't be found.\n");
+              break;
+            }
+
             response.type = USR_ERROR;
             response.size = strlen(error);
             response.body = malloc(response.size);
@@ -153,9 +161,6 @@ int main() {
 
             break;
         }
-
-        pthread_mutex_unlock(&threads_lock);
-        pthread_mutex_unlock(&users_lock);
 
       }
 
@@ -317,6 +322,8 @@ static int spawn_thread() {
   // >> Receive login request containing username
   request = recv_message(client_sock);
 
+  printf("%s Received login request\n", timestamp());
+
   // Free memory if it was set, just in case
   if (request.body != NULL) free(request.body);
 
@@ -330,17 +337,19 @@ static int spawn_thread() {
   // >> Find the first empty spot in the Users array to put this new connection
 
   pthread_mutex_lock(&users_lock);
+  pthread_mutex_lock(&threads_lock);
+
   for (i = 0; i <= CONN_LIMIT; i++) {
-    if (users[i].socket_fd == -1) break; // i is a free spot
-    else if (i == CONN_LIMIT) { // Didn't find any free spots
+    if (i == CONN_LIMIT) { // Didn't find any free spots
       fprintf(stderr, "Max connections reached, rejecting connection\n");
 
+      pthread_mutex_unlock(&threads_lock);
       pthread_mutex_unlock(&users_lock);
 
       response.type = SRV_ERROR;
       strcpy(res_msg, "Server is full");
       goto send_response;
-    }
+    } else if (users[i].socket_fd == -1) break; // i is a free spot
   }
 
   // >> Store user information and release users array
@@ -348,25 +357,22 @@ static int spawn_thread() {
   strncpy(users[i].username, request.sender_name, USERNAME_MAX);
   User* new_user = users + i; // keep track of user pointer
 
-  pthread_mutex_unlock(&users_lock);
-
   // >> Find the first empty spot in the Threads array to put this new user in
 
-  pthread_mutex_lock(&threads_lock);
   for (i = 0; i <= CONN_LIMIT; i++) {
-    if (!threads[i].in_use) break; // i is a free spot
-    else if (i == CONN_LIMIT) {
+    if (i == CONN_LIMIT) {
       fprintf(stderr, "Max threads reached, rejecting connection\n");
 
       users[i].socket_fd = -1;
       memset(users[i].username, 0, USERNAME_MAX);
 
       pthread_mutex_unlock(&threads_lock);
+      pthread_mutex_unlock(&users_lock);
 
       response.type = SRV_ERROR;
       strcpy(res_msg, "Server is full");
       goto send_response;
-    }
+    } else if (!threads[i].in_use) break; // i is a free spot
   }
 
   // >> Initialize thread
@@ -385,7 +391,9 @@ static int spawn_thread() {
 
   // >> Create thread and release threads array
   pthread_create(&threads[i].id, NULL, client_thread, (void*)&threads[i]);
+
   pthread_mutex_unlock(&threads_lock);
+  pthread_mutex_unlock(&users_lock);
 
   // >> Respond to client
   response.type = SRV_RESPONSE;
