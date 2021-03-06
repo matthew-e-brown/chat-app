@@ -178,7 +178,7 @@ static void setup_curses() {
     text_window,
     0, 0,                              // (y, x) of pad to display
     LINES - 4, 2 + prompt_length + 1,  // (y, x) on term to start drawing
-    LINES - 2, COLS - 2                // (y, x) on term to finish drawing
+    LINES - 2, COLS - 3                // (y, x) on term to finish drawing
   );
 }
 

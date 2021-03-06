@@ -33,7 +33,7 @@ static void goto_line_end();
  * @param y Pointer to the y value to set
  * @param x Pointer to the x value to set
  */
-static void restore_cursor(int* y, int* x) {
+static void get_cursor_pos(unsigned int* y, unsigned int* x) {
   unsigned int i = 0;
   *y = 0;
   *x = 0;
@@ -47,6 +47,29 @@ static void restore_cursor(int* y, int* x) {
       *x += 1;
     }
   }
+}
+
+
+static void update_pad(unsigned int cur_y, unsigned int cur_x) {
+  static unsigned int ystart = 0, xstart = 0;  // Start position of pad
+  unsigned int pad_h = (LINES - 2) - (LINES - 4) + 1;
+  unsigned int pad_w = (COLS - 3) - (2 + prompt_length + 1) + 1;
+
+  // Cursor is off the bottom
+  while (cur_y >= ystart + pad_h) ystart += 1;
+  // Cursor is off the top
+  while (cur_y < ystart) ystart -= 1;
+  // Cursor is off the right
+  while (cur_x >= xstart + pad_w) xstart += 1;
+  // Cursor is off the left
+  while (cur_x < xstart) xstart -= 1;
+
+  wmove(text_window, cur_y, cur_x);
+  prefresh(text_window,
+    ystart, xstart,
+    LINES - 4, 2 + prompt_length + 1,
+    LINES - 2, COLS - 3
+  );
 }
 
 
@@ -123,10 +146,10 @@ void handle_input() {
       }
       break;
     // ------------------------------------------------------>> Enter(s)
-     // CTRL+Enter (in nonl mode)
+    // CTRL+Enter (in nonl mode)
     case '\n': /* send_message() */ break;
     // Enter (in nonl mode)
-    case '\r': c = '\n'; goto insert;
+    case '\r': c = '\n'; goto insert; // ""fallthrough""
     // ------------------------------------------------------>> All others
     default:
       if (isprint(c)) {
@@ -147,19 +170,15 @@ void handle_input() {
 
   // >> Redraw Buffer
 
-  int y, x;
-  restore_cursor(&y, &x);  // Get cursor ending XY position
+  unsigned int y, x;
+  get_cursor_pos(&y, &x);   // Get cursor XY position before buffer reprint
 
-  werase(text_window);                    // clear pad
-  wprintw(text_window, current_message);  // print whole buffer
-  wmove(text_window, y, x);               // replace cursor position
+  wrefresh(chat_window);
 
-  prefresh(
-    text_window,
-    0, 0,
-    LINES - 4, 2 + prompt_length + 1,
-    LINES - 2, COLS - 2
-  );
+  werase(text_window);                    // Clear pad
+  wprintw(text_window, current_message);  // Print whole buffer
+
+  update_pad(y, x);         // Move pad as required and redraw
 }
 
 
@@ -174,6 +193,14 @@ static unsigned int get_position_in_line() {
 
   unsigned int spot = 0;    // Counter of chars before \n or pos=0
   unsigned int tpos = pos;  // temp pos counter, avoid chainging main pos
+
+  // If we are at the end of the current line (over-top of its new-line).  
+  // Can't use a do {} while because we only want the extra count IF we are
+  // starting on the new-line
+  if (current_message[pos] == '\n') {
+    tpos -= 1;
+    spot += 1;
+  }
 
   while (tpos > 0 && current_message[tpos] != '\n') {
     tpos -= 1;
