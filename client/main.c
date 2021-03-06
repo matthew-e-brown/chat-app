@@ -15,21 +15,17 @@
 #include "../shared/constants.h"
 #include "../shared/messaging.c"
 #include "../shared/utility.c"
+
 #include "./constants.h"
+#include "./handlers.c"
 
 // -- Global Variables
 
 WINDOW* chat_window;
 WINDOW* text_window;
-char color_term = 0;
 
-char current_message[MSG_BUFF];  // The current message being typed
-char my_username[USERNAME_MAX];  // The user's username
-
-unsigned int pos = 0;    // cursor's index into the buffer
-unsigned int
-  cur_x = 0, cur_y = 0,  // The x and y of the current cursor within the pad
-  pad_x = 0, pad_y = 0;  // The x and y of the pad's viewport to be displayed
+char current_message[MSG_BUFF];    // The current message being typed
+char my_username[USERNAME_MAX];    // The user's username
 
 // -- Function Headers
 
@@ -38,10 +34,21 @@ static void parse_args(int argc, char* argv[], in_addr_t* addr);
 static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size);
 
 
+/**
+ * Client's main function.
+ * @param argc Count of arguments; from command line
+ * @param argv Argument values; from command line
+ * @return A status code; 0 on succcess
+ */
 int main(int argc, char* argv[]) {
+  int rc;
+
   int server_sock;
   struct sockaddr_in server_addr;
   socklen_t serv_a_size = sizeof(server_addr);
+
+  int n, epoll_fd, num_events;
+  struct epoll_event events[MAX_EPOLL_EVENTS];
 
   // >> Make sure there's null bytes in there
   memset(current_message, '\0', MSG_BUFF);
@@ -54,15 +61,61 @@ int main(int argc, char* argv[]) {
   // >> Log into server
   server_login(&server_sock, (struct sockaddr*)&server_addr, &serv_a_size);
 
-  // >> Set up Curses library
+  // >> Setup epoll
+  rc = setup_epoll(&epoll_fd, (int[]){ server_sock, STDIN_FILENO });
+
+  if (rc != 0) {
+    switch (rc) {
+      case -1: perror("epoll_create1"); break;
+      case 1: perror("epoll_add server_sock"); break;
+      case 2: perror("epoll_add stdin"); break;
+    }
+
+    close(server_sock);
+    exit(1);
+  }
+
+  // >> Finally, set up Curses library
   setup_curses();
 
-  int c = 0;
-  do {
-    c = wgetch(text_window);
-  } while (c != 10 && c != KEY_ENTER);
+  while (1) {
+    num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
 
-  endwin();
+    if (num_events == -1) {
+      endwin();
+      close(server_sock);
+      perror("epoll_wait");
+      exit(1);
+    }
+
+    for (n = 0; n < num_events; n++) {
+
+      if (events[n].data.fd == STDIN_FILENO) {
+
+        handle_input();
+
+      } else if (events[n].data.fd == server_sock) {
+
+        Message from_server = recv_message(server_sock);
+
+        if (from_server.type == 0) {
+          // >> Socket closed
+          endwin();
+          printf("Lost connection to server.\n");
+          close(server_sock);
+          goto exit;
+        }
+
+        // display_message(from_server);
+
+      }
+
+    }
+  }
+
+  exit:;
+
+  if (!isendwin()) endwin();
   return 0;
 }
 
@@ -76,11 +129,12 @@ static void setup_curses() {
 
   cbreak();
   noecho();
+  nonl();
+
   clear();
 
   // >> Check if they can do colors, store result in global variable
-  color_term = (char)has_colors();
-  if (color_term) {
+  if (has_colors()) {
     start_color();
 
     init_pair(  CPAIR_BROADCAST,  COLOR_GREEN,   COLOR_BLACK  );
@@ -113,7 +167,7 @@ static void setup_curses() {
   // all horizontal or all vertical
   text_window = newpad(MSG_BUFF, MSG_BUFF);
   keypad(text_window, TRUE);
-  wtimeout(text_window, 0);
+  nodelay(text_border, TRUE);
 
   // >> Refresh all
 
@@ -122,7 +176,7 @@ static void setup_curses() {
   wrefresh(text_border);
   prefresh(
     text_window,
-    pad_y, pad_x,                      // (y, x) of pad to display
+    0, 0,                              // (y, x) of pad to display
     LINES - 4, 2 + prompt_length + 1,  // (y, x) on term to start drawing
     LINES - 2, COLS - 2                // (y, x) on term to finish drawing
   );
@@ -182,7 +236,7 @@ print_usage:
     " >> %s username host\n\n"
     "where 'username' is at most %i characters and 'host' is either an IP\n"
     "address or a hostname.\n",
-    argv[0], USERNAME_MAX
+    argv[0], USERNAME_MAX - 1
   );
 
   exit(2);
@@ -190,7 +244,10 @@ print_usage:
 
 
 /**
- * Logs into the server
+ * Logs into the server.
+ * @param sock_fd A pointer to the FD to put the socket on
+ * @param addr A pointer to place the address in
+ * @param size Used for bind; pointer to value in main
  */
 static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size) {
 
@@ -220,7 +277,6 @@ static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size) {
   memset(request.receiver_name, 0, USERNAME_MAX);
 
   if (send_message(*sock_fd, request) != 0) {
-    // endwin();
     fprintf(stderr, "Login request failed.\n");
     close(*sock_fd);
     exit(1);
@@ -229,7 +285,6 @@ static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size) {
   Message response = recv_message(*sock_fd);
 
   if (response.type != SRV_RESPONSE) {
-    // endwin();
 
     if (response.size > 0 && response.body != NULL) {
       fprintf(stderr, "%s error. Server said, \"%s\"\n",

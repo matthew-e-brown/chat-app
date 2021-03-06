@@ -50,6 +50,7 @@ static void run_command(Message message);
 
 /**
  * Server's main funciton.
+ * @return A status code; 0 on success
  */
 int main() {
   int i, n;  // counter for loops

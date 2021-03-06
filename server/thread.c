@@ -55,7 +55,7 @@ void* client_thread(void* arg) {
         // >> New message on socket
         Message new_message = recv_message(this->user->socket_fd);
 
-        if (new_message.size == 0) {
+        if (new_message.type == 0) {
           // >> User logged out
 
           printf("%s User \"%s\" disconnecting.\n",
@@ -80,7 +80,8 @@ void* client_thread(void* arg) {
 
         } else if (new_message.type == TRANSFER_END) {
           // >> User had an error
-          printf("User \"%s\" had transfer error.\n", this->user->username);
+          printf("%s User \"%s\" had transfer error.\n",
+            timestamp(), this->user->username);
 
           // No need to boot them off. TRANSFER_END happens when *they* leave
           // due to an error, so no need to respond either; they already know.
