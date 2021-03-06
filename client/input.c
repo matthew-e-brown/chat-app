@@ -1,3 +1,5 @@
+#define __CLIENT_INPUT__
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,11 +8,18 @@
 #include <ctype.h>
 #include <curses.h>
 
+#ifndef __GLOBAL_CONSTANTS__
+#include "../shared/constants.h"
+#endif
 #ifndef __CLIENT_CONSTANTS__
 #include "./constants.h"
 #endif
 
+// -- Definitions
+
 #define LINE_END(c) (c == '\n' || c == '\0')
+
+// -- External and Static Global Variables
 
 extern WINDOW* chat_window;
 extern WINDOW* text_window;
@@ -30,15 +39,16 @@ static void goto_line_end();
 /**
  * Gets the (x, y) position within the pad for the current cursor from the 1-d
  * index into the message buffer.
+ * @param buff_pos The index into the current message buffer to check y,x for
  * @param y Pointer to the y value to set
  * @param x Pointer to the x value to set
  */
-static void get_cursor_pos(unsigned int* y, unsigned int* x) {
+void get_cursor_pos(unsigned int buff_pos, unsigned int* y, unsigned int* x) {
   unsigned int i = 0;
   *y = 0;
   *x = 0;
 
-  for (i = 0; i < pos; i++) {
+  for (i = 0; i < buff_pos; i++) {
     if (current_message[i] == '\0') break;
     else if (current_message[i] == '\n') {
       *x = 0;
@@ -50,6 +60,12 @@ static void get_cursor_pos(unsigned int* y, unsigned int* x) {
 }
 
 
+/**
+ * Uses the current cursor position to scroll the pad if required, moves the
+ * cursor back into the right place, and then refreshes the pad.
+ * @param cur_y The y position of the cursor
+ * @param cur_y The x position of the cursor
+ */
 static void update_pad(unsigned int cur_y, unsigned int cur_x) {
   static unsigned int ystart = 0, xstart = 0;  // Start position of pad
   unsigned int pad_h = (LINES - 2) - (LINES - 4) + 1;
@@ -171,14 +187,14 @@ void handle_input() {
   // >> Redraw Buffer
 
   unsigned int y, x;
-  get_cursor_pos(&y, &x);   // Get cursor XY position before buffer reprint
+  get_cursor_pos(pos, &y, &x);  // Get cursor XY position before buffer reprint
 
   wrefresh(chat_window);
 
   werase(text_window);                    // Clear pad
   wprintw(text_window, current_message);  // Print whole buffer
 
-  update_pad(y, x);         // Move pad as required and redraw
+  update_pad(y, x);             // Move pad as required and redraw
 }
 
 

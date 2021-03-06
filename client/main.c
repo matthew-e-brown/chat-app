@@ -17,7 +17,7 @@
 #include "../shared/utility.c"
 
 #include "./constants.h"
-#include "./handlers.c"
+#include "./input.c"
 
 // -- Global Variables
 
