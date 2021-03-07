@@ -18,6 +18,7 @@
 
 #include "./constants.h"
 #include "./input.c"
+#include "./messages.c"
 
 // -- Global Variables
 
@@ -26,6 +27,7 @@ WINDOW* text_window;
 
 char current_message[MSG_BUFF];    // The current message being typed
 char my_username[USERNAME_MAX];    // The user's username
+unsigned int pos = 0;              // The current cursor position in the buffer
 
 // -- Function Headers
 
@@ -41,10 +43,11 @@ static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size);
  * @return A status code; 0 on succcess
  */
 int main(int argc, char* argv[]) {
-  int rc;
+  int rc;             // return code for various functions
+  unsigned int y, x;  // used for positioning cursor in pad
 
-  int server_sock;
-  struct sockaddr_in server_addr;
+  int server_sock;                 // socket FD for main server
+  struct sockaddr_in server_addr;  // address of the main server
   socklen_t serv_a_size = sizeof(server_addr);
 
   int n, epoll_fd, num_events;
@@ -78,6 +81,7 @@ int main(int argc, char* argv[]) {
   // >> Finally, set up Curses library
   setup_curses();
 
+  // >> Main event loop
   while (1) {
     num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
 
@@ -92,13 +96,40 @@ int main(int argc, char* argv[]) {
 
       if (events[n].data.fd == STDIN_FILENO) {
 
-        handle_input();
+        if (handle_input()) {
+
+          Message request = parse_buffer();
+
+          // >> Hardcode checking for if the command is '/bye'
+          if (
+            request.type == MSG_COMMAND &&                // is a command that
+            strstr(request.body, "bye") == request.body   // starts with bye
+          ) goto exit;
+
+          send_message(server_sock, request);
+          display_own_message(request);
+
+          // Extra check not to free the main message buffer because I don't
+          // trust myself
+          if (request.body != NULL && request.body != current_message)
+            free(request.body);
+
+          // >> Reset message
+          memset(current_message, '\0', MSG_BUFF);
+          pos = 0;
+
+          // >> Redraw empty chat box
+          get_cursor_pos(pos, &y, &x);
+
+          werase(text_window);
+          update_pad(y, x);
+        }
 
       } else if (events[n].data.fd == server_sock) {
 
-        Message from_server = recv_message(server_sock);
+        Message response = recv_message(server_sock);
 
-        if (from_server.type == 0) {
+        if (response.type == 0) {
           // >> Socket closed
           endwin();
           printf("Lost connection to server.\n");
@@ -106,14 +137,22 @@ int main(int argc, char* argv[]) {
           goto exit;
         }
 
-        // display_message(from_server);
+        // >> Display and free the server's message
+        display_message(response);
+        if (response.body != NULL) free(response.body);
 
+        // >> Reposition cursor in pad after drawing message
+        get_cursor_pos(pos, &y, &x);
+        update_pad(y, x);
       }
 
     }
   }
 
   exit:;
+
+  // Can leave unfreed memory as is, since this is the very end of the program.
+  // I have faith in the OS to take back everything it allocated the program.
 
   if (!isendwin()) endwin();
   return 0;
@@ -161,7 +200,7 @@ static void setup_curses() {
   scrollok(chat_window, TRUE);
   wmove(chat_window, 0, 0);
   wprintw(chat_window, welcome_message);
-  wprintw(chat_window, "\n<<------------------------>>\n");
+  wprintw(chat_window, "\n<<------------------------>>\n\n");
 
   // Pad needs to be big enough to hold all possible characters, even if they're
   // all horizontal or all vertical
@@ -254,13 +293,11 @@ static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size) {
   // >> Create socket and establish connection
 
   if ((*sock_fd = socket(AF_INET, SOCK_STREAM, 0))  < 0) {
-    // endwin();
     perror("socket");
     exit(1);
   }
 
   if (connect(*sock_fd, addr, *size) < 0) {
-    // endwin();
     fprintf(stderr,
       "Could not connect to server.\n"
       "Is it running? Did you get the address right?\n");

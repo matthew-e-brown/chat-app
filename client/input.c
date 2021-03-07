@@ -26,8 +26,7 @@ extern WINDOW* text_window;
 
 extern char current_message[MSG_BUFF];
 extern char my_username[USERNAME_MAX];
-
-static unsigned int pos = 0;
+extern unsigned int pos;
 
 // -- Function headers
 
@@ -92,8 +91,9 @@ static void update_pad(unsigned int cur_y, unsigned int cur_x) {
 /**
  * Reads user input from stdin within the context of the text_message curses
  * pad.
+ * @return 0 under normal use, 1 when message is ready to be sent
  */
-void handle_input() {
+int handle_input() {
   unsigned int i;
 
   // Strategy: **always** manipulate the current_message buffer directly, then
@@ -102,7 +102,7 @@ void handle_input() {
 
   // >> Start by reading character
   int c = wgetch(text_window);
-  if (c == ERR) return;
+  if (c == ERR) return 0;
 
   // Used for if-statements and memory management
   size_t length = strlen(current_message);  // Current length of the string
@@ -163,7 +163,8 @@ void handle_input() {
       break;
     // ------------------------------------------------------>> Enter(s)
     // CTRL+Enter (in nonl mode)
-    case '\n': /* send_message() */ break;
+    case '\n':
+      return 1; // send message
     // Enter (in nonl mode)
     case '\r': c = '\n'; goto insert; // ""fallthrough""
     // ------------------------------------------------------>> All others
@@ -189,12 +190,12 @@ void handle_input() {
   unsigned int y, x;
   get_cursor_pos(pos, &y, &x);  // Get cursor XY position before buffer reprint
 
-  wrefresh(chat_window);
-
   werase(text_window);                    // Clear pad
   wprintw(text_window, current_message);  // Print whole buffer
 
   update_pad(y, x);             // Move pad as required and redraw
+
+  return 0;
 }
 
 

@@ -39,7 +39,7 @@ int setup_epoll(int* epoll_fd, int files[]) {
 
 
 /**
- * Puts the current timestamp in '[YYYY-MM-DD_hh:mm:ss]' format into the given
+ * Puts the current timestamp in '[YYYY-MM-DD hh:mm:ss]' format into the given
  * buffer.
  * @return A pointer to a null terminated timestamp string, ready for printing
  */
@@ -49,6 +49,6 @@ char* timestamp() {
   time_t rawtime = time(NULL);
   struct tm* timeinfo = localtime(&rawtime);
 
-  strftime(timestamp, 22, "[%F_%T]", timeinfo);
+  strftime(timestamp, 22, "[%F %T]", timeinfo);
   return timestamp;
 }

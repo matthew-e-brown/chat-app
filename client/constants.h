@@ -4,11 +4,8 @@
 
 // -- Constant strings used by client app
 
-const char string_splitter[] = "::";  // Goes between [name]::[whisper]
-const char command_marker[] = "";     // Goes before commands
-
-// --->> When you change string_splitter, make sure to update the welcome
-//       message!
+#define STRING_SPLIT "::"
+#define COMMAND_MARK "/"
 
 const char prompt_message[] = "Enter a message: >>";  // Displayed in prompt
 const size_t prompt_length = 19;                      // Length without \0
@@ -20,16 +17,18 @@ const char welcome_message[] =
   "\n"
   "    [message]\n"
   "      -> Broadcast your message to all connected users.\n"
-  "    [name]::[message]\n"
+  "    [name]" STRING_SPLIT "[message]\n"
   "      -> Whisper your message to [name].\n"
-  "    /[command]\n"
+  "    " COMMAND_MARK "[command]\n"
   "      -> Run a command.\n"
   "\n"
   "Commands are as follows:\n"
-  "    /bye\n"
+  "    " COMMAND_MARK "bye\n"
   "      -> Leave the server and close the app.\n"
-  "    /who\n"
-  "      -> See all currently connected users.";
+  "    " COMMAND_MARK "who\n"
+  "      -> See all currently connected users.\n"
+  "\n"
+  "Use [ENTER] for new-lines and [CTRL]+[ENTER] to send.";
 
 
 // -- Color pairs used by Curses

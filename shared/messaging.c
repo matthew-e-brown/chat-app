@@ -163,7 +163,7 @@ Message recv_message(int socket) {
   do {
 recv_packet:; // To retry receipt after acknowledging failure
 
-    // >> Receive the message
+    // >> Receive the packet
     ssize_t b_recv = recv(socket, &packet, sizeof(Packet), 0);
     if (b_recv == -1) {
       ping(socket, ACK_PACK_ERR);
@@ -203,7 +203,7 @@ recv_packet:; // To retry receipt after acknowledging failure
       output.type = packet.header.message_type;
       output.size = packet.header.total_length;
 
-      if (output.size > 0) output.body = malloc(output.size);
+      if (output.size > 0) output.body = calloc(output.size, 1);
 
       strncpy(output.receiver_name, packet.header.receiver_name, USERNAME_MAX);
       strncpy(output.sender_name, packet.header.sender_name, USERNAME_MAX);

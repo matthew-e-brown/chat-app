@@ -112,7 +112,7 @@ int command_who(Message* dest) {
   size_t offset = strlen(pre); // amount copied so far
 
   // >> Allocate final chunk, copy prefix in
-  dest->body = malloc(total_size + offset);
+  dest->body = calloc(total_size + offset, 1);
   memcpy(dest->body, pre, offset);
 
   for (j = 0; j < count; j++) {

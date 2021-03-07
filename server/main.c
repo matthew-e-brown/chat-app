@@ -151,7 +151,7 @@ int main() {
 
             response.type = USR_ERROR;
             response.size = strlen(error);
-            response.body = malloc(response.size);
+            response.body = calloc(response.size, 1);
             strcpy(response.body, error);
 
             memset(response.sender_name, 0, USERNAME_MAX);
@@ -190,14 +190,13 @@ static void whisper(Message message) {
 
     response.type = USR_ERROR;
     response.size = strlen(error);
-    response.body = malloc(response.size);
+    response.body = calloc(response.size, 1);
     strcpy(response.body, error);
 
     memset(response.sender_name, 0, USERNAME_MAX);
     memset(response.receiver_name, 0, USERNAME_MAX);
 
-    send_message(culprit->user->socket_fd, response);
-    free(response.body);
+    write(culprit->pipe_fd[PW], &response, sizeof(Message));
   }
 }
 
@@ -218,7 +217,20 @@ static void broadcast(Message message) {
   // >> Send all the messages to their threads
   for (i = 0; i < CONN_LIMIT; i++) {
     if (threads[i].in_use && threads + i != source) {
-      write(threads[i].pipe_fd[PW], &message, sizeof(Message));
+      // Make a new copy of the message, since each thread will free up its
+      // version after sending
+      Message copy;
+
+      // >> Copy whole struct
+      memcpy(&copy, &message, sizeof(Message));
+
+      // >> Copy message into new memory location (since .body is just a
+      //    pointer)
+      copy.body = calloc(copy.size, 1);
+      memcpy(copy.body, message.body, copy.size);
+
+      // >> Actually send to pipe
+      write(threads[i].pipe_fd[PW], &copy, sizeof(Message));
     }
   }
 
@@ -238,6 +250,9 @@ static void run_command(Message message) {
   command_ptr command = find_command(message.body);
   if (command == NULL) {
     response.type = USR_ERROR;
+    response.size = 32 + strlen(message.body); // size needed
+    response.body = calloc(response.size, 1);
+    sprintf(response.body, "Could not find the command \"%s\".", message.body);
     goto error;
   }
 
@@ -245,14 +260,15 @@ static void run_command(Message message) {
   int rc = (*command)(&response);
   if (rc) {
     response.type = SRV_ERROR;
+    response.size = 48;
+    response.body = calloc(response.size, 1);
+    sprintf(response.body, "Something went wrong running the command.");
     goto error;
   }
 
   goto send_response; // Skip over creating error packet if error not hit
 
 error:;
-  response.size = 0;
-  response.body = NULL;
   memset(response.sender_name, 0, USERNAME_MAX);
   memset(response.receiver_name, 0, USERNAME_MAX);
 
@@ -405,7 +421,7 @@ send_response:
   response.size = strlen(res_msg);
 
   if (response.size > 0) {
-    response.body = malloc(response.size);
+    response.body = calloc(response.size, 1);
     strcpy(response.body, res_msg);
   }
 
@@ -419,6 +435,25 @@ send_response:
     close(client_sock);
     return 1;
   } else {
+
+    // >> Broadcast to all users that the new client is here (even the new
+    //    client, since the extra feedback is nice for them)
+
+    Message announce;
+    announce.type = SRV_ANNOUNCE;
+
+    memset(announce.sender_name, 0, USERNAME_MAX);
+    memset(announce.receiver_name, 0, USERNAME_MAX);
+
+    char body[12 + USERNAME_MAX];
+    sprintf(body, "%s has joined!", new_user->username);
+
+    announce.size = strlen(body);
+    announce.body = calloc(announce.size, 1);
+    strcpy(announce.body, body);
+
+    broadcast(announce);
+
     return 0;
   }
 }

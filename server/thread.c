@@ -72,7 +72,7 @@ void* client_thread(void* arg) {
           sprintf(body, "User \"%s\" has disconnected.", this->user->username);
 
           announce.size = strlen(body);
-          announce.body = malloc(announce.size);
+          announce.body = calloc(announce.size, 1);
           strcpy(announce.body, body);
 
           write(master_pipe[PW], &announce, sizeof(Message));
@@ -94,10 +94,11 @@ void* client_thread(void* arg) {
       } else if (events[n].data.fd == this->pipe_fd[PR]) {
         // >> Message from main thread to send
         Message message;
-        read(this->pipe_fd[PR], &message, sizeof(Message));
 
+        read(this->pipe_fd[PR], &message, sizeof(Message));
         send_message(this->user->socket_fd, message);
-        free(message.body);
+
+        if (message.body != NULL) free(message.body);
       }
     }
 
