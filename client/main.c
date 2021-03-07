@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
         Message response = recv_message(server_sock);
 
-        if (response.type == 0) {
+        if (response.type == MSG_UNSET) {
           // >> Socket closed
           endwin();
           printf("Lost connection to server.\n");

@@ -55,7 +55,7 @@ void* client_thread(void* arg) {
         // >> New message on socket
         Message new_message = recv_message(this->user->socket_fd);
 
-        if (new_message.type == 0) {
+        if (new_message.type == MSG_UNSET) {
           // >> User logged out
 
           printf("%s User \"%s\" disconnecting.\n",

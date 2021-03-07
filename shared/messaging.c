@@ -157,7 +157,7 @@ Message recv_message(int socket) {
 
   // >> Seed/unset values
   output.size = 0;
-  output.type = 0;
+  output.type = MSG_UNSET;
   output.body = NULL;
 
   do {
@@ -199,7 +199,7 @@ recv_packet:; // To retry receipt after acknowledging failure
     }
 
     // >> Create the required fields for the output message if not set yet
-    if (output.type == 0) {
+    if (output.type == MSG_UNSET) {
       output.type = packet.header.message_type;
       output.size = packet.header.total_length;
 

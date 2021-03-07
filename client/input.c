@@ -164,9 +164,11 @@ int handle_input() {
     // ------------------------------------------------------>> Enter(s)
     // CTRL+Enter (in nonl mode)
     case '\n':
-      return 1; // send message
+      c = '\n';
+      goto insert;
     // Enter (in nonl mode)
-    case '\r': c = '\n'; goto insert; // ""fallthrough""
+    case '\r':
+      return 1; // send message
     // ------------------------------------------------------>> All others
     default:
       if (isprint(c)) {

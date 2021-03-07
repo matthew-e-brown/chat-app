@@ -48,6 +48,7 @@ static void whisper(Message message);
 static void broadcast(Message message);
 static void run_command(Message message);
 
+
 /**
  * Server's main funciton.
  * @return A status code; 0 on success
@@ -138,14 +139,18 @@ int main() {
             break;
 
           default:             // Unknown/inappropriate message type
-            fprintf(stderr, "Received incorrect message type.\n");
+            fprintf(stderr,
+              "%s Received incorrect message type.\n", timestamp()
+            );
 
             Message response;
             const char error[] = "Invalid message type.";
             Thread* culprit = get_thread_by_username(from_thread.sender_name);
 
             if (culprit == NULL) {
-              fprintf(stderr, "Its sending thread couldn't be found.\n");
+              fprintf(stderr,
+                "%s Its sending thread couldn't be found.\n", timestamp()
+              );
               break;
             }
 
@@ -181,8 +186,14 @@ static void whisper(Message message) {
   Thread* destination = get_thread_by_username(message.receiver_name);
 
   if (destination != NULL) {
+    printf("%s User \"%s\" is whispering to \"%s\"\n",
+      timestamp(), message.sender_name, message.receiver_name);
+
     write(destination->pipe_fd[PW], &message, sizeof(Message));
   } else {
+    printf("%s User \"%s\" tried to whisper, but couldn't find target\n",
+      timestamp(), message.sender_name);
+
     // >> Uh oh! Couldn't find user
     Message response;
     const char error[] = "Could not find a user with that name.";
@@ -207,6 +218,16 @@ static void whisper(Message message) {
  */
 static void broadcast(Message message) {
   int i;
+
+  // If it's a MSG_ message
+  if ((message.type & 0x10) == 0x10) {
+    printf(
+      "%s User \"%s\" is broadcasting\n",
+      timestamp(), message.sender_name
+    );
+  } else {
+    printf("%s Server is broadcasting\n", timestamp());
+  }
 
   // >> Get source so as to not re-send to source user
   Thread* source = get_thread_by_username(message.sender_name);
@@ -246,6 +267,9 @@ static void broadcast(Message message) {
 static void run_command(Message message) {
   Message response;
 
+  printf("%s User \"%s\" is running a command\n",
+    timestamp(), message.sender_name);
+
   // >> Find command
   command_ptr command = find_command(message.body);
   if (command == NULL) {
@@ -255,6 +279,8 @@ static void run_command(Message message) {
     sprintf(response.body, "Could not find the command \"%s\".", message.body);
     goto error;
   }
+
+  printf("%s Found command \"%s\"\n", timestamp(), message.body);
 
   // >> Run command and get return code
   int rc = (*command)(&response);
@@ -266,11 +292,14 @@ static void run_command(Message message) {
     goto error;
   }
 
+  printf("%s Command succeeded\n", timestamp());
+
   goto send_response; // Skip over creating error packet if error not hit
 
 error:;
   memset(response.sender_name, 0, USERNAME_MAX);
   memset(response.receiver_name, 0, USERNAME_MAX);
+  printf("%s Command failed\n", timestamp());
 
 send_response:;
   Thread* reply_to = get_thread_by_username(message.sender_name);
@@ -432,9 +461,11 @@ send_response:
   if (response.size > 0) free(response.body);
 
   if (response.type != SRV_RESPONSE) {
+    printf("%s User could not log in.\n", timestamp());
     close(client_sock);
     return 1;
   } else {
+    printf("%s User \"%s\" has logged in\n", timestamp(), new_user->username);
 
     // >> Broadcast to all users that the new client is here (even the new
     //    client, since the extra feedback is nice for them)

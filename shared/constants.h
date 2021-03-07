@@ -14,6 +14,8 @@
 
 // -------- Messaging Verbs --------
 
+#define MSG_UNSET      0xff  // The seed/initial value for message types
+
 // Messages from either party; internal; used by library functions only
 #define ACK_PACKET     0x01  // Acknowledge all packets successful
 #define ACK_PACK_ERR   0x0e  // Packet SHA hash error, please re-send

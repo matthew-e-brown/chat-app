@@ -106,7 +106,7 @@ int command_who(Message* dest) {
   pthread_mutex_unlock(&users_lock);
 
   // >> Count final message size
-  size_t total_size;
+  size_t total_size = 0;
   for (j = 0; j < count; j++) total_size += sizes[j];
 
   size_t offset = strlen(pre); // amount copied so far

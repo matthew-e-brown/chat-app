@@ -28,7 +28,7 @@ const char welcome_message[] =
   "    " COMMAND_MARK "who\n"
   "      -> See all currently connected users.\n"
   "\n"
-  "Use [ENTER] for new-lines and [CTRL]+[ENTER] to send.";
+  "Use [CTRL]+[ENTER] for new-lines and [ENTER] to send.";
 
 
 // -- Color pairs used by Curses
