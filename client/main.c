@@ -231,17 +231,31 @@ static void setup_curses() {
  * @param addr Pointer to the address to set
  */
 static void parse_args(int argc, char* argv[], in_addr_t* addr) {
+  int i; // counter
+  FILE* f; // which file to print to (stdout/err) when jumping to print usage
+
+  // >> First thing's first, check if they needed help
+  for (i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      // >> They need help, so print usage message and abort
+      printf("ONCE YOU'RE INSIDE:\n%s\n\n", welcome_message);
+      f = stdout;
+      printf("STARTING THE APP: ");
+      goto print_usage;
+    }
+  }
+
   if (argc != 3) {
-    endwin();
     if (argc < 2) fprintf(stderr, "Missing username as argument.\n");
     if (argc < 3) fprintf(stderr, "Missing server address as argument.\n");
     if (argc > 3) fprintf(stderr, "Too many arguments given.\n");
+    f = stderr;
     goto print_usage;
   }
 
   if (strlen(argv[1]) >= USERNAME_MAX) {
-    endwin();
     fprintf(stderr, "Username is too long.\n");
+    f = stderr;
     goto print_usage;
   } else {
     strncpy(my_username, argv[1], USERNAME_MAX);
@@ -259,6 +273,7 @@ static void parse_args(int argc, char* argv[], in_addr_t* addr) {
 
     if (hp == NULL) {
       fprintf(stderr, "Couldn't get IP address or hostname.\n");
+      f = stderr;
       goto print_usage;
     } else {
       (*addr) = ((struct in_addr*)(hp->h_addr_list[0]))->s_addr;
@@ -269,8 +284,7 @@ static void parse_args(int argc, char* argv[], in_addr_t* addr) {
   return;
 
 print_usage:
-  fprintf(
-    stderr,
+  fprintf(f,
     "Usage:\n\n"
     " >> %s username host\n\n"
     "where 'username' is at most %i characters and 'host' is either an IP\n"
