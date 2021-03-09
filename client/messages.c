@@ -67,7 +67,7 @@ Message parse_buffer() {
 
     if (strlen(receiver_name) >= USERNAME_MAX) {
       const char* err =
-        "That username is too long to be a valid whisper targer.\n";
+        "That username is too long to be a valid whisper target.\n";
 
       // >> The username they typed is too long
       result.type = USR_ERROR;

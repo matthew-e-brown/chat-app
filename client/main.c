@@ -136,6 +136,8 @@ int main(int argc, char* argv[]) {
 
           Message request = parse_buffer();
 
+          if (request.size == 0) continue;
+
           // >> Hardcode checking for if the command is '/bye'
           if (
             request.type == MSG_COMMAND &&                // is a command that
