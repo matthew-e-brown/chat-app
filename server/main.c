@@ -1,3 +1,25 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Main server
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      Runs a server on the port defined in `/shared/constants.h`
+ *                that accepts clients and allows them to exchange messages
+ *                between one another.
+ *
+ * ===========================================================================
+ *
+ * Aside from this `main.c`, all other files in this directory have their
+ * @purpose rule filled with a description of the files *themselves*, as opposed
+ * to the whole program.
+ *
+ */
+
+
 // -- Includes
 
 #include <stdio.h>
@@ -14,6 +36,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+
 // -- Local Includes
 
 #include "../shared/constants.h"
@@ -24,6 +47,7 @@
 #include "./utility.c"
 #include "./thread.c"
 #include "./commands.c"
+
 
 // -- Global Variables
 
@@ -38,6 +62,7 @@ struct sockaddr_in master_addr; // Address of the bound socket
 socklen_t master_addr_size = sizeof(master_addr);  // Used for bind, size of ↑↑
 
 int master_pipe[2];  // Pipe that threads can write to to message main thread
+
 
 // -- Function definitions for this file
 

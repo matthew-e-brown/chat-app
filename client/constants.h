@@ -1,3 +1,18 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Client constants
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      Constant variables and macro definitions used by different
+ *                parts of the client app.
+ *
+ */
+
+
 #define __CLIENT_CONSTANTS__
 
 #define MSG_BUFF 0x1000   // The maximum message size: how big the buffer is

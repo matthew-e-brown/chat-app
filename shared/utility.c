@@ -1,3 +1,18 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Global utility functions
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      This file holds functions that are used by both the client and
+ *                the server.
+ *
+ */
+
+
 #define __GLOBAL_FUNCTIONS__
 
 #include <time.h>

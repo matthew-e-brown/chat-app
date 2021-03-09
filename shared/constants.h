@@ -1,3 +1,19 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Global constants
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      This file holds global constants used by both clietn and
+ *                server. Some are macros, but most of them are simply numerical
+ *                constants.
+ *
+ */
+
+
 #define __GLOBAL_CONSTANTS__
 
 // -------- Ease of use contants and macros --------

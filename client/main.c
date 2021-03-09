@@ -1,3 +1,34 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Main client
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      Connects to a server running on the port defined in
+ *                `/shared/constants.h` and allows a user to send and receive
+ *                broadcasts and whispers to and from other connected clients.
+ *
+ * @usage:        ./client.o name addr
+ *
+ * @parameters:   - name :: the username of the connecting client  
+ *                - addr :: the remote address to connect to. Can be either a
+ *                          hostname or an IP address.
+ *
+ * @example:      ./client.o matt localhost
+ *                ./client.o jacques 192.168.2.82
+ *
+ * ===========================================================================
+ *
+ * Aside from this `main.c`, all other files in this directory have their
+ * @purpose rule filled with a description of the files *themselves*, as opposed
+ * to the whole program.
+ *
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

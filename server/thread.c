@@ -1,3 +1,21 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Server thread function
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      The code defined in this file is the code run in each thread:
+ *                one for each client connected. It listens for incoming
+ *                messages from the client and redirects them up to the main
+ *                thread. It also listens to the main thread and redirects
+ *                messages from there to the client.
+ *
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -39,8 +39,30 @@ ones were:
   Overflow history during this period.
 
 
+## Assignment 2
+
+The second assignment was to take the first assignment and make it use a more
+official messaging protocol. More specifically, it was to make it so that the
+program would recover on its own from packet loss, and to validate incoming
+packets. In the case of this implementation, it was done using the built-in
+`SHA1` function.
+
+
+### References
+
+Even though this program was entirely re-written between assignments, there
+weren't that many extra articles used. Aside from an extra curses page or two
+and the manual page for `SHA1`.
+
+- [Curses "erase" vs "clear" question][ncurses-4]
+- [sha1(3) &mdash; Linux manual page][sha1-man]
+
+
 [ncurses-1]: https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 [ncurses-2]: http://www.cs.ukzn.ac.za/~hughm/os/notes/ncurses.html
 [ncurses-3]: https://www.linuxjournal.com/content/programming-color-ncurses
 [beej]: https://beej.us/guide/bgnet/html/
 [epoll-man]: https://man7.org/linux/man-pages/man7/epoll.7.html
+
+[ncurses-4]: https://lists.gnu.org/archive/html/bug-ncurses/2014-01/msg00007.html
+[sha1-man]: https://linux.die.net/man/3/sha1

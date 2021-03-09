@@ -1,3 +1,21 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Command functions and definitions
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      The file holds definitions for the commands of the server.
+ *                Each command is defined as a function that takes a pointer to
+ *                a message struct as an argument and returns an int status
+ *                code. The commands[] array holds a map between command names
+ *                (as strings) and pointers to the right function.
+ *
+ */
+
+
 #define __SERVER_COMMANDS__
 
 #include <stdio.h>
@@ -26,11 +44,15 @@ extern pthread_mutex_t threads_lock;
 // Function pointer definition for command functions
 typedef int (*command_ptr)(Message*);
 
+
 // -- Headers for command functions
 
 int command_who(Message* dest);
 
-// -- Utility struct for searching
+
+/**
+ * Utility struct for searching
+ */
 static struct command_pair {
   // name[] needs to be long enough to hold the longest command name. change as
   // needed.
@@ -41,6 +63,7 @@ static struct command_pair {
   { "who", &command_who }
 
 };
+
 
 // -- Functions
 
@@ -58,6 +81,7 @@ command_ptr find_command(const char string[]) {
 
   return NULL;
 }
+
 
 // -- Commands
 

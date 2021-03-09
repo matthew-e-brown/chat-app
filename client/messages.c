@@ -1,3 +1,19 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Messaging functions
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      Holds the functions required for taking the current message
+ *                buffer and sending it to the server. Also holds functions for
+ *                displaying message on the screen.
+ *
+ */
+
+
 #define __CLIENT_MESSAGES__
 
 #include <stdio.h>

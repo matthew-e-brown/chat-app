@@ -1,3 +1,19 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Input functions
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      Holds code for manipulating the main message buffer and all
+ *                the helper functions that requires. Also includes code for
+ *                properly updating the scrolling pad.
+ *
+ */
+
+
 #define __CLIENT_INPUT__
 
 #include <stdio.h>
@@ -15,9 +31,11 @@
 #include "./constants.h"
 #endif
 
+
 // -- Definitions
 
 #define LINE_END(c) (c == '\n' || c == '\0')
+
 
 // -- External and Static Global Variables
 
@@ -27,6 +45,7 @@ extern WINDOW* text_window;
 extern char current_message[MSG_BUFF];
 extern char my_username[USERNAME_MAX];
 extern unsigned int pos;
+
 
 // -- Function headers
 
@@ -147,7 +166,9 @@ int handle_input() {
         }
       }
     } break;
+
     // ------------------------------------------------------>> Deletion
+
     case KEY_BACKSPACE:
       if (pos > 0) {
         memmove(current_message + pos - 1, current_message + pos, to_end);
@@ -161,15 +182,19 @@ int handle_input() {
         current_message[length - 1] = '\0';
       }
       break;
+
     // ------------------------------------------------------>> Enter(s)
+
+    // Swap these two cases to change CTRL+ENTER / ENTER for sending and
+    // new-lining
+
     // CTRL+Enter (in nonl mode)
-    case '\n':
-      c = '\n';
-      goto insert;
+    case '\n': c = '\n'; goto insert;
     // Enter (in nonl mode)
-    case '\r':
-      return 1; // send message
+    case '\r': return 1; // send message
+
     // ------------------------------------------------------>> All others
+
     default:
       if (isprint(c)) {
         insert:;
@@ -213,9 +238,9 @@ static unsigned int get_position_in_line() {
   unsigned int spot = 0;    // Counter of chars before \n or pos=0
   unsigned int tpos = pos;  // temp pos counter, avoid chainging main pos
 
-  // If we are at the end of the current line (over-top of its new-line).  
-  // Can't use a do {} while because we only want the extra count IF we are
-  // starting on the new-line
+  // If we are at the end of the current line (over-top of its \n character),
+  // need to go back one more space. We can't use a do {} while in this case
+  // because we only want the extra count *if* we are starting on the new-line
   if (current_message[pos] == '\n') {
     tpos -= 1;
     spot += 1;

@@ -1,3 +1,18 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Server constants
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         February 1st to February 12th, 2021  
+ *                March 1st to March 9th, 2021
+ *
+ * @purpose:      Constant variables, types, and macro definitions used by
+ *                different parts of the server.
+ *
+ */
+
+
 #define __SERVER_CONSTANTS__
 
 #include <pthread.h>

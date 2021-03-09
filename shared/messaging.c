@@ -1,3 +1,23 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Global messaging functions
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         March 1st to March 9th, 2021
+ *
+ * @purpose:      This file holds functions used by the client and server to
+ *                send messages back and forth. They act as wrappers to the
+ *                built-in `send` and `recv` commands to comply with the RFC.
+ *
+ *                This implementation uses both a `message` struct and the
+ *                `packet` struct. The `message` struct is used internally and
+ *                the `packet` struct is only used within this file for
+ *                `send_message` and `recv_message`.
+ *
+ */
+
+
 #define __GLOBAL_MESSAGING__
 
 #ifndef __GLOBAL_CONSTANTS__
