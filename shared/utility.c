@@ -28,10 +28,11 @@
  * Sets up a bunch of file listeners on a specific epoll fd.
  * @param epoll_fd A pointer to the epoll_fd to set
  * @param files All the file descriptors to listen to on epoll
+ * @param count The count of files in the files array passed
  * @return 0 on success, -1 on epoll_create failure, and index of files array on
  * any other failure (1 indexed, to avoid collision w/ 0)
  */
-int setup_epoll(int* epoll_fd, int files[]) {
+int setup_epoll(int* epoll_fd, int files[], int count) {
   int i, rc;
 
   struct epoll_event event;
@@ -40,7 +41,7 @@ int setup_epoll(int* epoll_fd, int files[]) {
 
   if (*epoll_fd == -1) return -1;
 
-  for (i = 0; i < NUM_ELEMS(files); i++) {
+  for (i = 0; i < count; i++) {
     event.events = EPOLLIN;
     event.data.fd = files[i];
 

@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
   server_login(&server_sock, (struct sockaddr*)&server_addr, &serv_a_size);
 
   // >> Setup epoll
-  rc = setup_epoll(&epoll_fd, (int[]){ server_sock, STDIN_FILENO });
+  rc = setup_epoll(&epoll_fd, (int[]){ server_sock, STDIN_FILENO }, 2);
 
   if (rc != 0) {
     switch (rc) {

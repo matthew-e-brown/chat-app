@@ -126,7 +126,7 @@ Message parse_buffer() {
  */
 void display_message(Message message) {
   short pair = -1;
-  char preface[20 + USERNAME_MAX];
+  char preface[48];
 
   switch (message.type) {
     case MSG_BROADCAST:
@@ -202,7 +202,7 @@ void display_own_message(Message message) {
     wprintw(chat_window, "%s\n\n", message.body);
     wrefresh(chat_window);
 
-  } else if (!message.type == MSG_COMMAND) {
+  } else if (message.type != MSG_COMMAND) {
     // Don't want to display anything for commands
     display_message(message);
   }

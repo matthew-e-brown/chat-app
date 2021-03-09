@@ -114,7 +114,7 @@ int main() {
     timestamp(), PORT, master_sock);
 
   // >> Run epoll setup steps
-  rc = setup_epoll(&epoll_fd, (int[]){ master_sock, master_pipe[PR] });
+  rc = setup_epoll(&epoll_fd, (int[]){ master_sock, master_pipe[PR] }, 2);
 
   if (rc != 0) {
     switch (rc) {

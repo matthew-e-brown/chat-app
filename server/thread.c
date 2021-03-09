@@ -56,7 +56,9 @@ void* client_thread(void* arg) {
   int n, epoll_fd, num_events;
   struct epoll_event events[MAX_EPOLL_EVENTS];
 
-  setup_epoll(&epoll_fd, (int[]){ this->pipe_fd[PR], this->user->socket_fd });
+  int rc = setup_epoll(
+    &epoll_fd, (int[]){ this->pipe_fd[PR], this->user->socket_fd }, 2
+  );
 
   while (1) {
     num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
