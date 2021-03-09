@@ -107,6 +107,11 @@ int main() {
     exit(1);
   }
 
+#ifdef __DEBUG__
+  // >> Seed random number generator for packet corruption testing
+  srand(time(NULL));
+#endif
+
   // >> Run socket setup steps
   setup_listen_socket(&master_sock);
 

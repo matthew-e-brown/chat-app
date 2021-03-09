@@ -93,7 +93,7 @@ static void ping(int socket, unsigned short message_type) {
 
   packet.header.message_type = message_type;
 
-  /* size_t b_sent = */ send(socket, &packet, sizeof(Packet), 0);
+  send(socket, &packet, sizeof(Packet), 0);
 }
 
 
@@ -135,6 +135,29 @@ int send_message(int socket, Message message) {
     SHA1((unsigned char*)packet.data, PACKET_DATASIZE, packet.header.checksum);
 
 send_packet:;
+
+#ifdef __DEBUG__
+// Part of the assignment. In order to know if we are successfully recovering
+// from packet error, we force a corrupted packet. This needs to be AFTER the
+// send_packet label, otherwise when the retry is attempted the error will still
+// be present
+
+    char just_in_case[PACKET_DATASIZE]; // Save unmodified copy of data
+
+    // 8% chance seems good
+    if (rand() % 100 > 92 && amount > 0) {
+      // Save old copy of data
+      memcpy(just_in_case, packet.data, PACKET_DATASIZE);
+
+      // >> Corrupt one byte of the packet with a random ascii from 32-126
+      int index = rand() % (int)(amount - 1);
+      packet.data[index] = (char)(rand() % (127 - 32) + 32);
+
+      printf("__DEBUG__ :: Corrupted index %i of packet data with char '%c'!\n",
+        index, packet.data[index]);
+    }
+#endif
+
     ssize_t b_sent = send(socket, &packet, sizeof(Packet), 0);
     if (b_sent == -1) {
       ping(socket, TRANSFER_END);
@@ -148,8 +171,20 @@ send_packet:;
     }
 
     // >> Error check
-    if (response.header.message_type == ACK_PACK_ERR) goto send_packet;
-    else if (response.header.message_type != ACK_PACKET) {
+    if (response.header.message_type == ACK_PACK_ERR) {
+
+#ifdef __DEBUG__
+      // If this was an intentional packet error, copy back from just_in_case
+      // before jumping back to retry
+      if (amount > 0) {
+        memcpy(packet.data, just_in_case, PACKET_DATASIZE);
+        memset(just_in_case, 0, PACKET_DATASIZE);
+      }
+#endif
+
+      fprintf(stderr, "[INTERNAL] Received ACK_PACK_ERR! Re-requesting...\n");
+      goto send_packet;
+    } else if (response.header.message_type != ACK_PACKET) {
       ping(socket, TRANSFER_END);
       return -1;
     }
