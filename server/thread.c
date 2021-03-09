@@ -60,6 +60,50 @@ void* client_thread(void* arg) {
     &epoll_fd, (int[]){ this->pipe_fd[PR], this->user->socket_fd }, 2
   );
 
+  // >> If failed to establish epoll listen
+  if (rc) {
+    Message to_client;
+    Message rejection;
+    char to_client_message[36];
+    char rejection_message[32 + USERNAME_MAX];
+
+    switch (rc) {
+      case -1: perror("epoll_create1 in new client thread"); break;
+      case 1: perror("epoll_add thread->pipe_fd"); break;
+      case 2: perror("epoll_add thread->user->socket"); break;
+    }
+
+    printf("%s User \"%s\"'s thread could not be created.\n",
+      timestamp(), this->user->username);
+
+    // >> Inform new client and other clients that connection was not successful
+
+    to_client.type = SRV_ERROR;
+    rejection.type = SRV_ANNOUNCE;
+
+    memset(to_client.sender_name, 0, USERNAME_MAX);
+    memset(rejection.sender_name, 0, USERNAME_MAX);
+    memset(to_client.receiver_name, 0, USERNAME_MAX);
+    memset(rejection.receiver_name, 0, USERNAME_MAX);
+
+    sprintf(to_client_message, "Server could not establish thread.");
+    sprintf(rejection_message, "User \"%s\" could not be logged in.",
+      this->user->username);
+
+    to_client.size = strlen(to_client_message);
+    rejection.size = strlen(rejection_message);
+
+    to_client.body = calloc(to_client.size, 1);
+    rejection.body = calloc(rejection.size, 1);
+
+    // >> Send the messages
+    send_message(this->user->socket_fd, to_client);
+    write(master_pipe[PW], &rejection, sizeof(Message));
+
+    goto exit_thread;
+  }
+
+
   while (1) {
     num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
 
