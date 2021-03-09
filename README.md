@@ -56,6 +56,7 @@ and the manual page for `SHA1`.
 
 - [Curses "erase" vs "clear" question][ncurses-4]
 - [sha1(3) &mdash; Linux manual page][sha1-man]
+- [Fix for `EINTR` when resizing terminal screen][eintr]
 
 
 [ncurses-1]: https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
@@ -66,3 +67,4 @@ and the manual page for `SHA1`.
 
 [ncurses-4]: https://lists.gnu.org/archive/html/bug-ncurses/2014-01/msg00007.html
 [sha1-man]: https://linux.die.net/man/3/sha1
+[eintr]: https://stackoverflow.com/a/6870391/10549827

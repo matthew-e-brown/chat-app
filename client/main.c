@@ -114,14 +114,19 @@ int main(int argc, char* argv[]) {
 
   // >> Main event loop
   while (1) {
-    num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
+    do {
+      // >> watch for EINTR, which can be sent when resizing terminal screen
+      //    (need this here only since we're listening on stdin)
+      num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
 
-    if (num_events == -1) {
-      endwin();
-      close(server_sock);
-      perror("epoll_wait");
-      exit(1);
-    }
+      if (num_events == -1) {
+        endwin();
+        close(server_sock);
+        perror("epoll_wait");
+        exit(1);
+      }
+
+    } while (num_events < 0 && errno != EINTR);
 
     for (n = 0; n < num_events; n++) {
 
