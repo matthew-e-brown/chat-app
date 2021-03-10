@@ -250,7 +250,7 @@ static void broadcast(Message message) {
   int i;
 
   // If it's a MSG_ message
-  if ((message.type & 0x10) == 0x10) {
+  if ((message.type & 0xf000) == 0x1000) {
     printf(
       "%s User \"%s\" is broadcasting\n",
       timestamp(), message.sender_name

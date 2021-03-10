@@ -181,9 +181,10 @@ send_packet:;
         memcpy(packet.data, just_in_case, PACKET_DATASIZE);
         memset(just_in_case, 0, PACKET_DATASIZE);
       }
-#endif
 
       fprintf(stderr, "[INTERNAL] Received ACK_PACK_ERR! Re-requesting...\n");
+#endif
+
       goto send_packet;
     } else if (response.header.message_type != ACK_PACKET) {
       ping(socket, TRANSFER_END);

@@ -1,5 +1,13 @@
 RFC: 4310-0648289
 
+!!!  ----------------------------------------------------------------------  !!!
+
+THIS RFC SPECIFICATION IS NOW OUTDATED. PLEASE REFER TO VERSION 2 FOR ACCURATE
+DOCUMENTATION.
+
+!!!  ----------------------------------------------------------------------  !!!
+
+
                         MESSAGING PROTOCOL SPECIFICATION                        
 
                                   MATTHEW BROWN                                 

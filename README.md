@@ -47,6 +47,11 @@ program would recover on its own from packet loss, and to validate incoming
 packets. In the case of this implementation, it was done using the built-in
 `SHA1` function.
 
+In order to test this packet-loss-recovery functionality, compile the code using
+the `-D__DEBUG__` GCC flag. Alternatively, run `make d-server.o` or `make
+d-both`. This will create a debug version of the server that corrupts packets 8%
+of the time.
+
 
 ### References
 

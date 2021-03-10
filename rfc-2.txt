@@ -1,0 +1,436 @@
+ RFC: 4310-0648289
+
+                        MESSAGING PROTOCOL SPECIFICATION                        
+
+                                  MATTHEW BROWN                                 
+                                   MARCH 2021                                   
+
+                                  RFC VERSION 2                                 
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+                               TABLE OF CONTENTS                                
+
+1.  SUMMARY
+
+2.  PACKET DESCRIPTION
+
+    2.1.  Header
+    2.2.  Data
+
+3.  MESSAGING STEPS
+
+4.  MESSAGE TYPES
+
+    4.1.  Sent by both parties/internally
+
+    4.2.  Sent by the client
+
+          4.2.1.  List of commands
+
+    4.3.  Sent by the server
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+                                 1.  SUMMARY                                    
+
+This document outlines the specifications for how the COIS-4310H messaging
+applications should behave. It describes the form of the data to be sent between
+clients and servers. It lists which actions both the server and the clients may
+take and how the other should respond to and/or handle those actions.
+
+
+
+                           2.  PACKET DESCRIPTION                               
+
+Every single communication between client and server should be done using the
+following predefined packet structure. In the current specification, this
+structure is exactly 384 bytes long. It consists of a 128-byte header and a
+256-byte payload. As such, it should be backwards compatible with most
+implementations of RFC 4310-0648289 version 1.0, at least as far as reading the
+application version field and rejecting the packet for not being actually
+compatible. Future versions of this RFC will likely switch to a fixed-length
+header and a variable sized payload.
+
+
+2.1.  Header
+
+    In RFC version 2, each packet header has the following form:
+
+
+            0            1            2            3            
+           +------------+------------+------------+------------+
+           |                         |                         |
+           |     App/RFC version     |   Message type/action   |
+           |                         |                         |
+           +------------+------------+------------+------------+
+         4 |                         |                         |
+           |       Packet count      |       Packet index      |
+           |                         |                         |
+           +------------+------------+------------+------------+
+         8 |                                                   |
+           |                 Total message size                |
+           |                (across all packets)               |
+           +                                                   |
+        12 |                                                   |
+           |                                                   |
+           |                                                   |
+           +------------+------------+------------+------------+
+        16 |                                                   |
+           |                  Sender username                  |
+           |                     (16 bytes)                    |
+           +                                                   +
+        20 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   +
+        24 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   +
+        28 |                                                   |
+           |                                                   |
+           |                                                   |
+           +------------+------------+------------+------------+
+        32 |                                                   |
+           |                 Receiver username                 |
+           |                     (16 bytes)                    |
+           +                                                   +
+        36 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   +
+        40 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   +
+        44 |                                                   |
+           |                                                   |
+           |                                                   |
+           +------------+------------+------------+------------+
+        48 |                                                   |
+           |                 Data SHA1 checksum                |
+           |                     (20 bytes)                    |
+           +                                                   +
+        52 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   +
+        56 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   +
+        60 |                                                   |
+           |                                                   |
+           |                                                   |
+           +                                                   |
+        64 |                                                   |
+           |                                                   |
+           |                                                   |
+           +------------+------------+------------+------------+
+        68 |                                                   |
+           .           padding, future use (60 bytes)          .
+           .                                                   .
+           .                                                   .
+       124 +                .  .  .  .  .  .  .                +
+           |                                                   |
+           |                                                   |
+           +------------+------------+------------+------------+
+
+                            PACKET HEADER FORMAT                
+
+
+    The first section of this header, "Application/RFC version" is an unsigned
+    short which is to start at one and be incremented with each version of the
+    RFC. This first section will always be constant, meaning that any given
+    implementation of this RFC will be able to at least read the first two bytes
+    of a packet and know if the received packet is compatible.
+
+    The second section, "Message type/action" is one of a set of pre-defined
+    unsigned shorts. They are grouped into sets:
+
+      - 0x0001 :: Packet success acknowledgement
+      - 0x000e :: Packet error acknowledgement: please re-send packet
+      - 0x000f :: Transfer termination notification: do not continue waiting
+
+      - 0x1001 :: Client login request
+      - 0x1002 :: Whisper message
+      - 0x1003 :: Broadcast message
+      - 0x100f :: Command message
+
+      - 0x2001 :: Server announcement/broadcast from server
+      - 0x2002 :: Direct response from server to client
+      - 0x200e :: Server response: Error, server-side
+      - 0x200f :: Server response: Error, user-error
+
+      - 0xffff :: "Unset" -- The default value for packets before they have the
+                  "Message type/action" field set. Packets with this type should
+                  be counted as invalid.
+
+    Each set has a different highest-order nibble: messages used for internal
+    communications are all between 0x0000-0x0fff, messages sent by the client
+    are all between 0x1000-0x1fff, and messages sent by the server are all
+    between 0x2000-0x2fff. This allows for the use of an 0xf000 bit-mask to
+    check message sets, should that ever come up.
+
+    These actions are detailed further in the MESSAGE TYPES section.
+
+    The third and fourth sections, "Packet count" and "Packet index", are used
+    when segmenting information across multiple packets. Since the payload of
+    each packet is a fixed size, anything larger than said size will need to be
+    split up into multiple packets. These two fields allow the client and server
+    to verify and re-order multiple packets.
+
+    Next, the fifth section is an unsigned long which holds the total data-size
+    across all packets. This is useful when the receiver of the message needs to
+    allocate memory accurately.
+
+    Second to last, there are the two username fields: these names are sixteen
+    bytes each, and are expected to include a terminating NULL (0x00) byte. This
+    means that usernames are limited to 15 characters in length. In the event
+    that these fields are not required for a communication, they should be set
+    to all NULL (0x00) bytes.
+
+    Finally, there is a data checksum. These final twenty bytes of the header
+    hold a SHA1 hash of all 256 bytes of the data portion. This redundancy is
+    used to verify successful arrival of packet data.
+
+    After the last field, the header is padded to 128 bytes. This space is free
+    to be used by the given implementation for any extra information.
+
+
+2.2.  Data
+
+    The data section of the packet is 256 bytes of raw binary data. Generally,
+    it is used to transport strings by assigning the right value in the header
+    of the packet. However, anything may be transported.
+
+
+
+                              3.  MESSAGING STEPS                               
+
+Every message is sent using the same set of steps; the process is very simple.
+When sending a message, the sender splits it into as many chunks as required to
+be able to send the message in packets of 256 bytes. The sender will place that
+required number of packets into the "Packet count" field of the header of every
+packet for the transmission.
+
+For each packet, the sender is to calculate the 20-byte SHA1 checksum and
+populate the corresponding field in the header, as well as populating the
+"Packet index" field. Then, the sender sends the message to the recipient
+through the connected socket and wait for an acknowledgement ping.
+
+When the recipient receives a packet, it is to verify the packet's integrity by
+re-calculating the SHA1 checksum and comparing it to the one included in the
+packet's header. If the checksums match, the recipient stores the packet's data
+and moves on to the next packet (if applicable). If the checksums do not match,
+the recipient is to reply with a Packet error ping instead of a Packet
+acknowledgement ping. Once this occurs, both client and server rewind to before
+the packet was sent and reattempt the transmission.
+
+A "ping", as brought up a few times, is simply a packet with no sender name,
+recipient name, checksum, or data. It is used simply to transmit one of the
+message actions as a signal. Primarily, it is used to send packet
+acknowledgements and error responses. The "Packet count" field on this packet
+should be set to one, the "Application/RFC version" should be set, and the
+"Message type/action" should be set. Everything else should be NULL (0x00).
+
+
+          +-----------------+            +-----------------+                   
+   +----->|                 |            |                 |<---------------+  
+   |      |      Sender     |            |    Recipient    |                |  
+   |      |                 |            |                 |                |  
+   |      +-----------------+            +-----------------+                |  
+   |               |                              .                         |  
+   |               v                              .                         |  
+   |       +---------------+                      .                         |  
+   |       |  Compute SHA1 |                      .                         |  
+   |       |    checksum   |                      .                         |  
+   |       +---------------+                      .                         |  
+   |               |                              .                         |  
+   |               v                              .                         |  
+   |       +---------------+                      .                         |  
+   |       | Fill metadata |                      .                         |  
+   |       +---------------+                      .                         |  
+   |               |                              .                         |  
+   |               v                              v                         |  
+   |       +---------------+              +---------------+                 |  
+   |   +-->|  Send packet  |  -------->>  |    Receive    |                 |  
+   |   |   +---------------+              |     packet    |                 |  
+   |   |           .                      +---------------+                 |  
+   |   |           .                              |                         |  
+   |   |           .                              v                         |  
+   |   |           .                      /---------------\                 |  
+   |   |           .                      |  Verify SHA1  |   valid         |  
+   |   |           .                      |    checksum   |-----+           |  
+   |   |           .                      \---------------/     |           |  
+   |   |           .                              |             |           |  
+   |   |           .                     invalid  |             |           |  
+   |   |           .                              |             |           |  
+   |   |           .                              v             |           |  
+   |   |           .                       +--------------+     |           |  
+   |   |           .               +-------|  Send 0x000e |     |           |  
+   |   |           .               |       |  error ping  |     |           |  
+   |   | 0x000e    .               |       +--------------+     |           |  
+   |   |           .               |              |             |           |  
+   |   |           v               |              |             v           |  
+   |   |   /---------------\       |              |      +--------------+   |  
+   |   +---|    Receive    |  <<---+---------------------|  Send 0x0001 |   |  
+   |       |     ping      |                      |      |     ping     |   |  
+   |       \---------------/                      |      +--------------+   |  
+   |               |                              |             |           |  
+   |               |  0x0001                      |             |           |  
+   |               |                              |             |           |  
+   |               |                              +-------------------------+  
+   |               |                                            |           ^  
+   |               |                                            |           |  
+   |               |                                            |           |  
+   |               |                                            |  more to  |  
+   | more to send  |                                            |  receive  |  
+   |               |                                            |           |  
+   +---------------+                                            +-----------+  
+                   |                                            |              
+                   v                                            v              
+                 Done!                                        Done!            
+
+                           MESSAGE SENDING FLOWCHART                           
+
+
+The above flowchart shows how parties should send and receive messages. As a
+reminder, the recipient can check how many are left to receive by using the
+"Packet count" and "Packet index" fields.
+
+
+
+                              4.  MESSAGE TYPES                                 
+
+
+4.1.  Sent by both parties/internally
+
+    Both parties are expected to exchange internal communications with message
+    types of the 0x0000 group. Currently, the following three are defined:
+
+      - 0x0001 :: Acknowledge a packet successfully reaching the recipient and
+                  validating the SHA1 check  
+      - 0x000e :: Acknowledge a packet, but request that it be re-sent,
+                  generally due to a failure in SHA1 verification  
+      - 0x000f :: Request that the entire transfer be aborted earlier than
+                  expected  
+
+    The three of these message types are sent in the midst of transporting other
+    message types. They may be completely abstracted in the implementation, only
+    used by the raw messaging library functions.
+
+    All three of these message types are sent primarily in "pings", messages
+    which contain no bodies or other metadata (except for the type itself,
+    "Packet count" of one, and the "Application/RFC version").
+
+    The first and second of these types are either self explanatory or may be
+    visualized in the flowchart in section 3., MESSAGING STEPS. The final one is
+    used when one party encounters an irrecoverable error and needs to stop
+    sending or receiving packets. This will prevent the opposing party from
+    waiting forever.
+
+
+4.2.  Sent by the client
+
+    The client is capable of sending four different types of messages to the
+    server. They are defined as follows:
+
+      - 0x1001 :: The client wishes to log into the server, and has provided
+                  their desired username in the "Sender name" field.  
+      - 0x1002 :: The client is broadcasting a message to the entire chatroom.  
+      - 0x1003 :: The client is whispering directly to another user.  
+      - 0x100f :: The client is sending a command to the server.
+
+    In all these cases, the client is expected to populate the "Sender username"
+    field with their username.
+
+    The first of these message types, the login request, is to have no body (all
+    NULL, 0x00, bytes). It is also the only type on this list which expected to
+    have an extra acknowledgement cycle; meaning that the client will listen
+    explicitly for an acknowledgement from the server upon logging in. When the
+    client wishes to log in, it sends an empty packet of type 0x1001 containing
+    their username in the "Sender name" field and waits for the server's
+    response. This way, the client can know if the login was successful before
+    attempting to listen for any incoming messages. If the client could not join
+    for whatever reason, the server is to respond with one of 0x200e or 0x200f,
+    detailed in the following subsection.
+
+    Whisper messages are required to have both sender usernames and receiver
+    usernames filled in. Upon receipt, the server is to simply re-route these
+    messages to the specified recipient, with no extra processing.
+
+    Broadcast messages are much simpler. All the server has to do is to is
+    redirect these messages to all connected clients. While it is not a strict
+    enforcement, the specification recommends that the original sending client
+    is excluded from this broadcast.
+
+    Commands are sent by the client to the server with the expectation that the
+    server will perform some action. A list of the currently pre-defined
+    commands are given below, in subsection 4.1.1.; though an implementation may
+    define as may extra commands as it likes as long as those provided by the
+    specification are not overridden. Server responses to commands (should that
+    command warrant a response) are disconnected from the original message:
+    there is no link between the two messages, and the server should use either
+    0x2001 or 0x2002 (detailed in the following section).
+
+
+    4.1.1. Command list
+
+        Currently, there is only one pre-defined command:
+
+          - who
+
+        The 'who' command is issued when a client wishes to know who else is
+        connected to the server. The formatting of the server's response is
+        implementation-dependent, but it should simply be sent back to the
+        client who requested it as a part of the payload portion of a message
+        using the 0x2002 type.
+
+
+4.2.  Sent by the server
+
+    The server is capable of sending one of the following four types of
+    messages:
+
+      - 0x2001 :: The server is announcing something to all connected clients  
+      - 0x2002 :: The server is responding directly to an individual client, or
+                  providing them with some other non-broadcasted information.  
+      - 0x200e :: An error message: something went wrong on the server's side;
+                  this is not the user's fault.  
+      - 0x200f :: An error message: something went wrong because of a mistake in
+                  the user's request.
+
+    The first two types of this group are best exemplified by their uses to
+    announce the arrival and departure of clients and to reply to command
+    requests respectively. The former is equivalent to a broadcast message
+    (0x1002), simply sent from the server itself, and the latter is equivalent
+    to a whisper message (0x1003) sent from the server itself.
+
+    The second two are used, as their listed purposes may suggest, to inform
+    clients of errors. These are separate from packet errors during message
+    transmission, which occur on a lower level. An example of when the first
+    should be used is when an error is reported by a system call and the server
+    needs to abort what it is doing while executing a command: the user is not
+    at fault, but something went wrong. The second of the two should be used,
+    for example, when the user requests a command which does not exist.
+
+    The case of both error messages, the reason or explanation should be put
+    into the payload of the message.
+
+
+
+--------------------------------------------------------------------------------
+
+                        MESSAGING PROTOCOL SPECIFICATION                        
+
+                              END RFC DOCUMENTATION                             

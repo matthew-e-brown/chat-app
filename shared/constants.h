@@ -30,24 +30,24 @@
 
 // -------- Messaging Verbs --------
 
-#define MSG_UNSET      0xff  // The seed/initial value for message types
+#define MSG_UNSET      ((unsigned short)(0xffff))  // The seed/initial value for message types
 
 // Messages from either party; internal; used by library functions only
-#define ACK_PACKET     0x01  // Acknowledge all packets successful
-#define ACK_PACK_ERR   0x0e  // Packet SHA hash error, please re-send
-#define TRANSFER_END   0x0f  // Cancel the transfer partway through
+#define ACK_PACKET     ((unsigned short)(0x0001))  // Acknowledge a successful packet
+#define ACK_PACK_ERR   ((unsigned short)(0x000e))  // Packet SHA hash error, please re-send
+#define TRANSFER_END   ((unsigned short)(0x000f))  // Cancel the transfer partway through
 
 // Messages from the client, from one client to another or to server
-#define MSG_LOGIN      0x11  // Client is logging in with username
-#define MSG_WHISPER    0x12  // Client is whispering from one client to another
-#define MSG_BROADCAST  0x13  // Client is sending a message to all other users
-#define MSG_COMMAND    0x1f  // Client is sending a command to the server
+#define MSG_LOGIN      ((unsigned short)(0x1001))  // Client is logging in with username
+#define MSG_WHISPER    ((unsigned short)(0x1002))  // Client is whispering from one client to another
+#define MSG_BROADCAST  ((unsigned short)(0x1003))  // Client is sending a message to all other users
+#define MSG_COMMAND    ((unsigned short)(0x100f))  // Client is sending a command to the server
 
 // Messages from the server directly
-#define SRV_ANNOUNCE   0x21  // Server is announcing an update to all clients
-#define SRV_RESPONSE   0x22  // Server is replying to an individual client
-#define SRV_ERROR      0x23  // Server says, "something went wrong"; HTTP 500
-#define USR_ERROR      0x24  // Server says, "user did sometihng wrong"; 400
+#define SRV_ANNOUNCE   ((unsigned short)(0x2001))  // Server is announcing an update to all clients
+#define SRV_RESPONSE   ((unsigned short)(0x2002))  // Server is replying to an individual client
+#define SRV_ERROR      ((unsigned short)(0x200e))  // Server says, "something went wrong"; HTTP 500
+#define USR_ERROR      ((unsigned short)(0x200f))  // Server says, "user did sometihng wrong"; 400
 
 // -------- Other Constants --------
 
