@@ -90,8 +90,8 @@ void* client_thread(void* arg) {
     sprintf(rejection_message, "User \"%s\" could not be logged in.",
       this->user->username);
 
-    to_client.size = strlen(to_client_message);
-    rejection.size = strlen(rejection_message);
+    to_client.size = strlen(to_client_message) + 1;
+    rejection.size = strlen(rejection_message) + 1;
 
     to_client.body = calloc(to_client.size, 1);
     rejection.body = calloc(rejection.size, 1);
@@ -135,7 +135,7 @@ void* client_thread(void* arg) {
           char body[28 + USERNAME_MAX]; // "User ... has ..." = 26, 28 in case
           sprintf(body, "User \"%s\" has disconnected.", this->user->username);
 
-          announce.size = strlen(body);
+          announce.size = strlen(body) + 1;
           announce.body = calloc(announce.size, 1);
           strcpy(announce.body, body);
 

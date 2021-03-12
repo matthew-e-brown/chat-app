@@ -185,7 +185,7 @@ int main() {
             }
 
             response.type = USR_ERROR;
-            response.size = strlen(error);
+            response.size = strlen(error) + 1;
             response.body = calloc(response.size, 1);
             strcpy(response.body, error);
 
@@ -230,7 +230,7 @@ static void whisper(Message message) {
     Thread* culprit = get_thread_by_username(message.sender_name);
 
     response.type = USR_ERROR;
-    response.size = strlen(error);
+    response.size = strlen(error) + 1;
     response.body = calloc(response.size, 1);
     strcpy(response.body, error);
 
@@ -477,7 +477,7 @@ static int spawn_thread() {
 
   // Jump here to send response to client
 send_response:
-  response.size = strlen(res_msg);
+  response.size = strlen(res_msg) + 1;
 
   if (response.size > 0) {
     response.body = calloc(response.size, 1);
@@ -509,7 +509,7 @@ send_response:
     char body[12 + USERNAME_MAX];
     sprintf(body, "%s has joined!", new_user->username);
 
-    announce.size = strlen(body);
+    announce.size = strlen(body) + 1;
     announce.body = calloc(announce.size, 1);
     strcpy(announce.body, body);
 

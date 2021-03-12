@@ -74,7 +74,7 @@ Message parse_buffer() {
       memset(result.sender_name, 0, USERNAME_MAX);
       memset(result.receiver_name, 0, USERNAME_MAX);
 
-      result.size = strlen(err);
+      result.size = strlen(err) + 1;
       result.body = calloc(result.size, 1);
       memcpy(result.body, err, result.size);
 
@@ -87,7 +87,7 @@ Message parse_buffer() {
       // >> Include the new '\0' byte in the receiver name
       memcpy(result.receiver_name, receiver_name, strlen(receiver_name) + 1);
 
-      result.size = strlen(message_start);
+      result.size = strlen(message_start) + 1;
       result.body = calloc(result.size, 1);
       memcpy(result.body, message_start, result.size);
 
@@ -100,7 +100,7 @@ Message parse_buffer() {
     memset(result.receiver_name, 0, USERNAME_MAX);
     memcpy(result.sender_name, my_username, USERNAME_MAX);
 
-    result.size = strlen(current_message) - CMARK_SIZE;
+    result.size = strlen(current_message) - CMARK_SIZE + 1;
     result.body = calloc(result.size, 1);
     memcpy(result.body, current_message + CMARK_SIZE, result.size);
 
@@ -111,7 +111,7 @@ Message parse_buffer() {
     memset(result.receiver_name, 0, USERNAME_MAX);
     memcpy(result.sender_name, my_username, USERNAME_MAX);
 
-    result.size = strlen(current_message);
+    result.size = strlen(current_message) + 1;
     result.body = calloc(result.size, 1);
     memcpy(result.body, current_message, result.size);
   }
