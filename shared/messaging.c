@@ -107,6 +107,13 @@ static void ping(int socket, unsigned short message_type) {
 int send_message(int socket, Message message) {
   Packet packet;
 
+#ifdef __DEBUG__
+// Part of the assignment. See comments below at send_packet:; for details.
+
+  char old[PACKET_DATASIZE];  // Save unmodified copy of data
+  unsigned char reset = 0;    // 0/1 for if the corrupt packet was on purpose
+#endif
+
   // How many chunks this packet will take?
   unsigned short packet_count = message.size / PACKET_DATASIZE + 1;
 
@@ -143,12 +150,11 @@ send_packet:;
 // send_packet label, otherwise when the retry is attempted the error will still
 // be present
 
-    char just_in_case[PACKET_DATASIZE]; // Save unmodified copy of data
-
     // 8% chance seems good
     if (rand() % 100 > 92 && amount > 0) {
       // Save old copy of data
-      memcpy(just_in_case, packet.data, PACKET_DATASIZE);
+      memcpy(old, packet.data, PACKET_DATASIZE);
+      reset = 1;
 
       // >> Corrupt one byte of the packet with a random ascii from 32-126
       int index = rand() % (int)(amount - 1);
@@ -177,12 +183,13 @@ send_packet:;
 #ifdef __DEBUG__
       // If this was an intentional packet error, copy back from just_in_case
       // before jumping back to retry
-      if (amount > 0) {
-        memcpy(packet.data, just_in_case, PACKET_DATASIZE);
-        memset(just_in_case, 0, PACKET_DATASIZE);
+      if (amount > 0 && reset == 1) {
+        memcpy(packet.data, old, PACKET_DATASIZE);
+        memset(old, 0, PACKET_DATASIZE);
+        reset = 0;
       }
 
-      fprintf(stderr, "[INTERNAL] Received ACK_PACK_ERR! Re-requesting...\n");
+      fprintf(stderr, "[INTERNAL] Received ACK_PACK_ERR! Re-sending...\n");
 #endif
 
       goto send_packet;
