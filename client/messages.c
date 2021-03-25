@@ -26,14 +26,10 @@
 #include "../shared/utility.h"
 
 #include "./constants.h"
+#include "./messages.h"
 #include "./input.h"
 
 
-/**
- * Turns the raw text from current_message into a Message object, ready to be
- * sent.
- * @return The message in the form of the Message struct
- */
 Message parse_buffer(const char buffer[]) {
   // >> On run, get the sizes of the splitters so that we can calculate offsets
   size_t SPLIT_SIZE = strlen(STRING_SPLIT);
@@ -105,10 +101,6 @@ Message parse_buffer(const char buffer[]) {
 }
 
 
-/**
- * Takes a message and puts it on the screen with nice colours.
- * @param message The message to display
- */
 void display_message(Message message) {
   short pair = -1;
   char preface[48];
@@ -153,11 +145,6 @@ void display_message(Message message) {
 }
 
 
-/**
- * Wrapper for `display_message`. Sets sender field to "you" (etc.) before
- * forwarding for display.
- * @param message The message to display
- */
 void display_own_message(Message message) {
 
   // Double check that this is our own message before actually manipulating it.

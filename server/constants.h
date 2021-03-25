@@ -22,6 +22,8 @@
 
 #define CONN_LIMIT 8     // The maximum connected users at a time
 
+// -- Global utility structs
+
 /**
  * Internal representation of a user; all it needs to store is the socket
  * they're connected to and the name.
@@ -30,7 +32,6 @@ typedef struct user {
   int socket_fd;                // The FD of the user's socket
   char username[USERNAME_MAX];  // The user's username
 } User;
-
 
 /**
  * Struct for metadata about each thread.

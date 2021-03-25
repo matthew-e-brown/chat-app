@@ -42,7 +42,21 @@ typedef struct message {
 } Message;
 
 
+/**
+ * Sends a message. Message is broken into chunks and sent one by one.
+ * @param socket The socket file descriptor to send the message to
+ * @param message The raw data to send inside the packets
+ * @return A return code; 0 on success, anything else on error
+ */
 int send_message(int socket, Message message);
+
+
+/**
+ * Receives a message. Message is read in packet-by-packet.
+ * @param socket The socket to read from
+ * @return A Message struct containing the sent message and metadata; will be
+ * empty on error
+ */
 Message recv_message(int socket);
 
 #endif

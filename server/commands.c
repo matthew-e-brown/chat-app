@@ -29,12 +29,7 @@
 #include "./commands.h"
 
 
-// Function pointer definition for command functions
-
-
-/**
- * Utility struct for searching
- */
+// Utility struct for searching
 static struct command_pair {
   // name[] needs to be long enough to hold the longest command name. change as
   // needed.
@@ -47,13 +42,8 @@ static struct command_pair {
 };
 
 
-// -- Functions
+// -- Helper functions
 
-/**
- * Returns the function to be used for the command string passed.
- * @param string The string to check for a matching command to
- * @return A pointer to the function to call
- */
 command_ptr find_command(const char string[]) {
   int i;
 
@@ -64,14 +54,8 @@ command_ptr find_command(const char string[]) {
   return NULL;
 }
 
-
 // -- Commands
 
-/**
- * COMMAND: Lists all users on the server.
- * @param dest The message to place the response in.
- * @return A status code.
- */
 int command_who(Message* dest) {
   int i, j;
 
