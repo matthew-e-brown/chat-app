@@ -21,12 +21,9 @@
 #include <pthread.h>
 
 #include "../shared/constants.h"
+
 #include "./constants.h"
 
-extern Thread threads[CONN_LIMIT];
-extern User users[CONN_LIMIT];
-extern pthread_mutex_t threads_lock;
-extern pthread_mutex_t users_lock;
 
 /**
  * Get a pointer to a thread based on a username.

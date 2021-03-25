@@ -27,15 +27,10 @@
 #include "../shared/constants.h"
 #include "../shared/messaging.h"
 #include "../shared/utility.h"
+
 #include "./constants.h"
 #include "./utility.h"
 
-extern int master_pipe[2];
-
-extern User users[CONN_LIMIT];
-extern Thread threads[CONN_LIMIT];
-extern pthread_mutex_t users_lock;
-extern pthread_mutex_t threads_lock;
 
 /**
  * Handles ongoing communication between a client and the server

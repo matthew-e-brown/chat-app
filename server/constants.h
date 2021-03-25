@@ -12,11 +12,13 @@
  *
  */
 
-#include <pthread.h>
-#include "../shared/constants.h"
-
 #ifndef __SERVER_CONSTANTS__
 #define __SERVER_CONSTANTS__
+
+#include <pthread.h>
+#include <sys/socket.h>
+
+#include "../shared/constants.h"
 
 #define CONN_LIMIT 8     // The maximum connected users at a time
 
@@ -39,5 +41,19 @@ typedef struct server_thread {
   int pipe_fd[2];        // The FD this pipe uses to receive data from main
   User* user;            // Pointer to the user this thread is responsible for
 } Thread;
+
+// -- Global variable *declarations*
+
+extern User users[CONN_LIMIT];         // Holds all users' metadata
+extern Thread threads[CONN_LIMIT];     // Holds all client thread metadata
+
+extern pthread_mutex_t threads_lock;   // Locks access to 'threads'
+extern pthread_mutex_t users_lock;     // Locks access to 'users'
+
+extern int master_sock;                // Bound listener socket
+extern struct sockaddr_in master_addr; // Address of the bound socket
+extern socklen_t master_addr_size;     // Used for bind
+
+extern int master_pipe[2];  // Pipe for threads to message back to main thread
 
 #endif

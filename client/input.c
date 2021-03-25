@@ -25,25 +25,14 @@
 #include "../shared/constants.h"
 #include "./constants.h"
 
-// -- External and Static Global Variables
-
-extern WINDOW* chat_window;
-extern WINDOW* text_window;
-
-extern char current_message[MSG_BUFF];
-extern char my_username[USERNAME_MAX];
-extern unsigned int pos;
-
-
 // -- Function headers
 
 static unsigned int get_position_in_line();
 static void goto_line_start();
 static void goto_line_end();
 
-static inline int line_end(char c) {
-  return (c == '\n' || c == '\0');
-}
+static inline int line_end(char c) { return (c == '\n' || c == '\0'); }
+
 
 /**
  * Gets the (x, y) position within the pad for the current cursor from the 1-d

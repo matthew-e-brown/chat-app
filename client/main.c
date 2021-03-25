@@ -52,19 +52,18 @@
 #include "./messages.h"
 #include "./input.h"
 
-// -- Global Variables
+// -- Global variable *definitions*
 
 WINDOW* chat_window;
 WINDOW* text_window;
 
-char current_message[MSG_BUFF];    // The current message being typed
-char my_username[USERNAME_MAX];    // The user's username
-unsigned int pos = 0;              // The current cursor position in the buffer
+char current_message[MSG_BUFF];
+char my_username[USERNAME_MAX];
+unsigned int pos = 0;
 
-const char prompt_message[] = "Enter a message: >>";  // Displayed in prompt
-const size_t prompt_length = 19;                      // Length without \0
+const char prompt_message[] = "Enter a message: >>";
+const size_t prompt_length = 19;
 
-// Displayed at the start of the program
 const char welcome_message[] =
   "Hello! Welcome to the app. Type your messages in one of the following "
   "formats:\n"

@@ -29,12 +29,6 @@
 #include "./commands.h"
 
 
-extern User users[CONN_LIMIT];
-extern Thread threads[CONN_LIMIT];
-extern pthread_mutex_t users_lock;
-extern pthread_mutex_t threads_lock;
-
-
 // Function pointer definition for command functions
 
 

@@ -49,25 +49,25 @@
 #include "./commands.h"
 
 
-// -- Global Variables
+// -- Global variable *definitions*
 
-User users[CONN_LIMIT];         // Holds all users' metadata
-Thread threads[CONN_LIMIT];     // Holds all client thread metadata
+User users[CONN_LIMIT];
+Thread threads[CONN_LIMIT];
 
-pthread_mutex_t threads_lock;   // Locks access to 'threads'
-pthread_mutex_t users_lock;     // Locks access to 'users'
+pthread_mutex_t threads_lock;
+pthread_mutex_t users_lock;
 
-int master_sock;                // Bound listener socket
-struct sockaddr_in master_addr; // Address of the bound socket
-socklen_t master_addr_size = sizeof(master_addr);  // Used for bind, size of ↑↑
+int master_sock;
+struct sockaddr_in master_addr;
+socklen_t master_addr_size = sizeof(master_addr);
 
-int master_pipe[2];  // Pipe that threads can write to to message main thread
+int master_pipe[2];
 
 
 // -- Function definitions for this file
 
-static void setup_listen_socket(int* socket_fd);
 static int spawn_thread();
+static void setup_listen_socket(int* socket_fd);
 
 static void whisper(Message message);
 static void broadcast(Message message);

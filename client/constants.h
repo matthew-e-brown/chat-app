@@ -23,17 +23,27 @@
 #define STRING_SPLIT "::"
 #define COMMAND_MARK "/"
 
-extern const char prompt_message[];
-extern const char welcome_message[];
-extern const size_t prompt_length;
-
-
-// -- Color pairs used by Curses
+// Color pairs used by Curses:
 
 #define CPAIR_BROADCAST   ((short)(0x0001))
 #define CPAIR_WHISPER     ((short)(0x0002))
 #define CPAIR_OWN_MSG     ((short)(0x0003))
 #define CPAIR_NOTICE      ((short)(0x0004))
 #define CPAIR_ERROR       ((short)(0x0005))
+
+// -- Global variable *declarations*
+
+extern WINDOW* chat_window;  // The window where messages are displayed
+extern WINDOW* text_window;  // The window the user types into
+
+extern char current_message[MSG_BUFF];  // Current message being typed
+extern char my_username[USERNAME_MAX];  // User's username
+extern unsigned int pos;                // Tracked cursor pos in the buffer
+
+// Displayed at the start of the program
+extern const char welcome_message[];
+
+extern const char prompt_message[];  // Displayed in prompt
+extern const size_t prompt_length;   // Length without \0
 
 #endif

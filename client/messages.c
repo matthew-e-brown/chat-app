@@ -28,13 +28,6 @@
 #include "./constants.h"
 #include "./input.h"
 
-extern WINDOW* chat_window;
-extern WINDOW* text_window;
-
-extern char current_message[MSG_BUFF];
-extern char my_username[USERNAME_MAX];
-extern unsigned int pos;
-
 
 /**
  * Turns the raw text from current_message into a Message object, ready to be
