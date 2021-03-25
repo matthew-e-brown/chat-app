@@ -12,17 +12,13 @@
  *
  */
 
+#include <pthread.h>
+#include "../shared/constants.h"
 
+#ifndef __SERVER_CONSTANTS__
 #define __SERVER_CONSTANTS__
 
-#include <pthread.h>
-
-#ifndef __GLOBAL_CONSTANTS__
-#include "../shared/constants.h"
-#endif
-
-#define CONN_LIMIT 8
-
+#define CONN_LIMIT 8     // The maximum connected users at a time
 
 /**
  * Internal representation of a user; all it needs to store is the socket
@@ -39,7 +35,9 @@ typedef struct user {
  */
 typedef struct server_thread {
   unsigned char in_use;  // 0/1 value for if the thread is currently being used
-  pthread_t id;   // PThread identifier for library functions
+  pthread_t id;          // PThread identifier for library functions
   int pipe_fd[2];        // The FD this pipe uses to receive data from main
   User* user;            // Pointer to the user this thread is responsible for
 } Thread;
+
+#endif

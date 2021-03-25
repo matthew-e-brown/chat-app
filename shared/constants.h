@@ -13,7 +13,7 @@
  *
  */
 
-
+#ifndef __GLOBAL_CONSTANTS__
 #define __GLOBAL_CONSTANTS__
 
 // -------- Ease of use contants and macros --------
@@ -52,3 +52,5 @@
 // -------- Other Constants --------
 
 #define USERNAME_MAX   16      // Maximum length for usernames
+
+#endif

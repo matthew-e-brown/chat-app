@@ -14,8 +14,6 @@
  */
 
 
-#define __CLIENT_INPUT__
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,18 +22,8 @@
 #include <ctype.h>
 #include <curses.h>
 
-#ifndef __GLOBAL_CONSTANTS__
 #include "../shared/constants.h"
-#endif
-#ifndef __CLIENT_CONSTANTS__
 #include "./constants.h"
-#endif
-
-
-// -- Definitions
-
-#define LINE_END(c) (c == '\n' || c == '\0')
-
 
 // -- External and Static Global Variables
 
@@ -53,6 +41,9 @@ static unsigned int get_position_in_line();
 static void goto_line_start();
 static void goto_line_end();
 
+static inline int line_end(char c) {
+  return (c == '\n' || c == '\0');
+}
 
 /**
  * Gets the (x, y) position within the pad for the current cursor from the 1-d
@@ -84,7 +75,7 @@ void get_cursor_pos(unsigned int buff_pos, unsigned int* y, unsigned int* x) {
  * @param cur_y The y position of the cursor
  * @param cur_y The x position of the cursor
  */
-static void update_pad(unsigned int cur_y, unsigned int cur_x) {
+void update_pad(unsigned int cur_y, unsigned int cur_x) {
   static unsigned int ystart = 0, xstart = 0;  // Start position of pad
   unsigned int pad_h = (LINES - 2) - (LINES - 4) + 1;
   unsigned int pad_w = (COLS - 3) - (2 + prompt_length + 1) + 1;
@@ -145,7 +136,7 @@ int handle_input() {
         goto_line_start();
         // >> Move forwards by line_dist amount
         for (i = 0; i < line_dist - 1; i++) {
-          if (LINE_END(current_message[pos])) break;
+          if (line_end(current_message[pos])) break;
           pos += 1;
         }
       }
@@ -161,7 +152,7 @@ int handle_input() {
         // >> Move forwards line_dist amount, stopping at end of line or string
         //    No - 1 this time because we need to include the \n from above
         for (i = 0; i < line_dist; i++) {
-          if (LINE_END(current_message[pos])) break;
+          if (line_end(current_message[pos])) break;
           pos += 1;
         }
       }
@@ -265,7 +256,7 @@ static void goto_line_start() {
     int c = pos;
     do {
       c -= 1;
-    } while (c >= 0 && !LINE_END(current_message[c]));
+    } while (c >= 0 && !line_end(current_message[c]));
     pos = c + 1;
   }
 }
@@ -275,5 +266,5 @@ static void goto_line_start() {
  * Move the cursor to the end of the current line.
  */
 static void goto_line_end() {
-  while (!LINE_END(current_message[pos])) pos += 1;
+  while (!line_end(current_message[pos])) pos += 1;
 }

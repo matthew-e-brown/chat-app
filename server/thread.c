@@ -22,22 +22,13 @@
 #include <unistd.h>
 
 #include <pthread.h>
+#include <sys/epoll.h>
 
-#ifndef __GLOBAL_CONSTANTS__
 #include "../shared/constants.h"
-#endif
-#ifndef __GLOBAL_MESSAGING__
-#include "../shared/messaging.c"
-#endif
-#ifndef __GLOBAL_FUNCTIONS__
-#include "../shared/utility.c"
-#endif
-#ifndef __SERVER_CONSTANTS__
+#include "../shared/messaging.h"
+#include "../shared/utility.h"
 #include "./constants.h"
-#endif
-#ifndef __SERVER_FUNCTIONS__
-#include "./utility.c"
-#endif
+#include "./utility.h"
 
 extern int master_pipe[2];
 

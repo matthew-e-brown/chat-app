@@ -12,9 +12,6 @@
  *
  */
 
-
-#define __GLOBAL_FUNCTIONS__
-
 #include <time.h>
 #include <sys/types.h>
 #include <sys/epoll.h>

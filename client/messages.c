@@ -14,8 +14,6 @@
  */
 
 
-#define __CLIENT_MESSAGES__
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,18 +21,12 @@
 
 #include <curses.h>
 
-#ifndef __GLOBAL_CONSTANTS__
 #include "../shared/constants.h"
-#endif
-#ifndef __GLOBAL_MESSAGING__
-#include "../shared/messaging.c"
-#endif
-#ifndef __CLIENT_CONSTANTS__
+#include "../shared/messaging.h"
+#include "../shared/utility.h"
+
 #include "./constants.h"
-#endif
-#ifndef __CLIENT_INPUT__
-#include "./input.c"
-#endif
+#include "./input.h"
 
 extern WINDOW* chat_window;
 extern WINDOW* text_window;
@@ -49,18 +41,18 @@ extern unsigned int pos;
  * sent.
  * @return The message in the form of the Message struct
  */
-Message parse_buffer() {
+Message parse_buffer(const char buffer[]) {
   // >> On run, get the sizes of the splitters so that we can calculate offsets
   size_t SPLIT_SIZE = strlen(STRING_SPLIT);
   size_t CMARK_SIZE = strlen(COMMAND_MARK);
 
   Message result;
 
-  char* split_ptr = strstr(current_message, STRING_SPLIT);
+  char* split_ptr = strstr(buffer, STRING_SPLIT);
 
   if (split_ptr != NULL) {
     // >> STRING_SPLIT found
-    char* receiver_name = current_message;
+    const char* receiver_name = buffer;
     char* message_start = split_ptr + SPLIT_SIZE;
 
     *split_ptr = '\0'; // null terminate the username
@@ -93,16 +85,16 @@ Message parse_buffer() {
 
     }
 
-  } else if (strstr(current_message, COMMAND_MARK) == current_message) {
+  } else if (strstr(buffer, COMMAND_MARK) == buffer) {
     // >> COMMAND_MARK was found at the start
     result.type = MSG_COMMAND;
 
     memset(result.receiver_name, 0, USERNAME_MAX);
     memcpy(result.sender_name, my_username, USERNAME_MAX);
 
-    result.size = strlen(current_message) - CMARK_SIZE + 1;
+    result.size = strlen(buffer) - CMARK_SIZE + 1;
     result.body = calloc(result.size, 1);
-    memcpy(result.body, current_message + CMARK_SIZE, result.size);
+    memcpy(result.body, buffer + CMARK_SIZE, result.size);
 
   } else {
     // >> STRING_SPLIT not found, is a regular message
@@ -111,9 +103,9 @@ Message parse_buffer() {
     memset(result.receiver_name, 0, USERNAME_MAX);
     memcpy(result.sender_name, my_username, USERNAME_MAX);
 
-    result.size = strlen(current_message) + 1;
+    result.size = strlen(buffer) + 1;
     result.body = calloc(result.size, 1);
-    memcpy(result.body, current_message, result.size);
+    memcpy(result.body, buffer, result.size);
   }
 
   return result;

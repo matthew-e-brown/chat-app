@@ -40,19 +40,19 @@
 // -- Local Includes
 
 #include "../shared/constants.h"
-#include "../shared/messaging.c"
-#include "../shared/utility.c"
+#include "../shared/messaging.h"
+#include "../shared/utility.h"
 
 #include "./constants.h"
-#include "./utility.c"
-#include "./thread.c"
-#include "./commands.c"
+#include "./utility.h"
+#include "./thread.h"
+#include "./commands.h"
 
 
 // -- Global Variables
 
-Thread threads[CONN_LIMIT];     // Holds all client thread metadata
 User users[CONN_LIMIT];         // Holds all users' metadata
+Thread threads[CONN_LIMIT];     // Holds all client thread metadata
 
 pthread_mutex_t threads_lock;   // Locks access to 'threads'
 pthread_mutex_t users_lock;     // Locks access to 'users'

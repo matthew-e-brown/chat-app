@@ -13,8 +13,6 @@
  */
 
 
-#define __SERVER_FUNCTIONS__
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,12 +20,8 @@
 
 #include <pthread.h>
 
-#ifndef __GLOBAL_CONSTANTS__
 #include "../shared/constants.h"
-#endif
-#ifndef __SERVER_CONSTANTS__
 #include "./constants.h"
-#endif
 
 extern Thread threads[CONN_LIMIT];
 extern User users[CONN_LIMIT];

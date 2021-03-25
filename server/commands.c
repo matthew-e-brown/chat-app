@@ -15,9 +15,6 @@
  *
  */
 
-
-#define __SERVER_COMMANDS__
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,15 +22,12 @@
 
 #include <pthread.h>
 
-#ifndef __GLOBAL_CONSTANTS__
 #include "../shared/constants.h"
-#endif
-#ifndef __GLOBAL_MESSAGING__
-#include "../shared/messaging.c"
-#endif
-#ifndef __SERVER_CONSTANTS__
+#include "../shared/messaging.h"
+
 #include "./constants.h"
-#endif
+#include "./commands.h"
+
 
 extern User users[CONN_LIMIT];
 extern Thread threads[CONN_LIMIT];
@@ -42,12 +36,6 @@ extern pthread_mutex_t threads_lock;
 
 
 // Function pointer definition for command functions
-typedef int (*command_ptr)(Message*);
-
-
-// -- Headers for command functions
-
-int command_who(Message* dest);
 
 
 /**
