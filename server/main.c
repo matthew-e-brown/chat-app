@@ -157,10 +157,12 @@ int main() {
         switch (from_thread.type) {
           case SRV_ANNOUNCE:   // A thread is trying to announce something
           case MSG_BROADCAST:  // A user is attempting to broadcast to others
+          case (MSG_BROADCAST | MSG_IS_ENC):
             broadcast(from_thread);
             break;
 
           case MSG_WHISPER:    // A user is whispering
+          case (MSG_WHISPER | MSG_IS_ENC):
             whisper(from_thread);
             break;
 
@@ -170,7 +172,7 @@ int main() {
 
           default:             // Unknown/inappropriate message type
             fprintf(stderr,
-              "%s Received incorrect message type.\n", timestamp()
+              "%s Received invalid message type.\n", timestamp()
             );
 
             Message response;
@@ -250,7 +252,7 @@ static void broadcast(Message message) {
   int i;
 
   // If it's a MSG_ message
-  if ((message.type & 0xf000) == 0x1000) {
+  if ((message.type & MASK_TYPE) == MSG_IS_MSG) {
     printf(
       "%s User \"%s\" is broadcasting\n",
       timestamp(), message.sender_name

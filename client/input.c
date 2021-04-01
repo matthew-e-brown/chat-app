@@ -161,7 +161,7 @@ int handle_input() {
 
     default:
       if (isprint(c)) {
-        insert:;
+insert:;
         // Triggers at 0x0fff chars, to keep room for null term
         if (pos >= MSG_BUFF - 1) {
           // >> Message too long!

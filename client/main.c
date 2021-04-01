@@ -49,6 +49,7 @@
 #include "../shared/utility.h"
 
 #include "./constants.h"
+#include "./encoding.h"
 #include "./messages.h"
 #include "./input.h"
 
@@ -108,6 +109,8 @@ int main(int argc, char* argv[]) {
   int n, epoll_fd, num_events;
   struct epoll_event events[MAX_EPOLL_EVENTS];
 
+  unsigned char *encoding_buff;
+
   // >> Make sure there's null bytes in there
   memset(current_message, '\0', MSG_BUFF);
 
@@ -165,11 +168,24 @@ int main(int argc, char* argv[]) {
           // >> Hardcode checking for if the command is '/bye'
           if (
             request.type == MSG_COMMAND &&                // is a command that
-            strstr(request.body, "bye") == request.body   // starts with bye
+            (
+              strstr(request.body, "bye") == request.body || // starts with bye
+              strstr(request.body, "exit") == request.body   // or with exit
+            )
           ) goto exit;
 
-          send_message(server_sock, request);
           display_own_message(request);
+
+          // >> Encode message
+          request.size = encode(
+            (unsigned char*)(request.body), request.size, &encoding_buff
+          );
+
+          free(request.body);                     // free original body
+          request.body = (char*)(encoding_buff);  // point to new body
+          request.type |= MSG_IS_ENC;
+
+          send_message(server_sock, request);
 
           // Extra check not to free the main message buffer because I don't
           // trust myself
@@ -197,6 +213,18 @@ int main(int argc, char* argv[]) {
           printf("Lost connection to server.\n");
           close(server_sock);
           goto exit;
+        }
+
+        // >> Decode if necessary
+
+        if ((response.type & MASK_ENCODE) == MSG_IS_ENC) {
+          response.size = decode(
+            (unsigned char*)(response.body), &encoding_buff
+          );
+
+          free(response.body);                      // Free original body
+          response.body = (char*)(encoding_buff);   // Point to new body
+          response.type &= ~MSG_IS_ENC;
         }
 
         // >> Display and free the server's message
@@ -301,8 +329,8 @@ static void parse_args(int argc, char* argv[], in_addr_t* addr) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       // >> They need help, so print usage message and abort
       printf("ONCE YOU'RE INSIDE:\n%s\n\n", welcome_message);
-      f = stdout;
       printf("STARTING THE APP: ");
+      f = stdout;
       goto print_usage;
     }
   }

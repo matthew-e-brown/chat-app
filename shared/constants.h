@@ -21,7 +21,7 @@
 #define PR 0 // The side of pipes to read from
 #define PW 1 // The side of pipes to write to
 
-#define APP_VER 2
+#define APP_VER 3
 #define PORT 58289
 #define MAX_EPOLL_EVENTS 10
 
@@ -43,14 +43,25 @@
 #define MSG_BROADCAST  ((unsigned short)(0x1003))  // Client is sending a message to all other users
 #define MSG_COMMAND    ((unsigned short)(0x100f))  // Client is sending a command to the server
 
+#define MSG_ENC_WHISP  ((unsigned short)(0x1012))  // Encoded version of whisper
+#define MSG_ENC_BROAD  ((unsigned short)(0x1013))  // Encoded version of broadcast
+
 // Messages from the server directly
 #define SRV_ANNOUNCE   ((unsigned short)(0x2001))  // Server is announcing an update to all clients
 #define SRV_RESPONSE   ((unsigned short)(0x2002))  // Server is replying to an individual client
 #define SRV_ERROR      ((unsigned short)(0x200e))  // Server says, "something went wrong"; HTTP 500
 #define USR_ERROR      ((unsigned short)(0x200f))  // Server says, "user did sometihng wrong"; 400
 
+#define MASK_TYPE      ((unsigned short)(0xf000))  // Mask to check category
+#define MSG_IS_ACK     ((unsigned short)(0x0000))  // The form after masking of a ACK_ type message
+#define MSG_IS_MSG     ((unsigned short)(0x1000))  // The form after masking of a MSG_ type message
+#define MSG_IS_SRV     ((unsigned short)(0x2000))  // The form after masking of a SRV_ type message
+
+#define MASK_ENCODE    ((unsigned short)(0x00f0))  // Mask to check if MSG_ is encoded
+#define MSG_IS_ENC     ((unsigned short)(0x0010))  // The form after masking to check if encoded
+
 // -------- Other Constants --------
 
-#define USERNAME_MAX   16      // Maximum length for usernames
+#define USERNAME_MAX   16                          // Maximum length for usernames
 
 #endif
