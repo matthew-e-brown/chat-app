@@ -64,8 +64,7 @@ int command_who(Message* dest) {
   char** chunks; // Array of strings to join at the end
   size_t* sizes; // Array of chunk sizes
 
-  pthread_mutex_lock(&users_lock);
-  pthread_mutex_lock(&threads_lock);
+  pthread_mutex_lock(&ut_lock);
 
   // >> Count number of users for proper allocation
   int count = 0;
@@ -92,8 +91,7 @@ int command_who(Message* dest) {
     }
   }
 
-  pthread_mutex_unlock(&threads_lock);
-  pthread_mutex_unlock(&users_lock);
+  pthread_mutex_unlock(&ut_lock);
 
   // >> Count final message size
   size_t total_size = 0;

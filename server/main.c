@@ -54,8 +54,7 @@
 User users[CONN_LIMIT];
 Thread threads[CONN_LIMIT];
 
-pthread_mutex_t threads_lock;
-pthread_mutex_t users_lock;
+pthread_mutex_t ut_lock;
 
 int master_sock;
 struct sockaddr_in master_addr;
@@ -96,8 +95,7 @@ int main() {
   }
 
   // >> Initialize mutexes
-  pthread_mutex_init(&threads_lock, NULL);
-  pthread_mutex_init(&users_lock, NULL);
+  pthread_mutex_init(&ut_lock, NULL);
 
   // >> Create main pipe
   rc = pipe(master_pipe);
@@ -177,7 +175,10 @@ int main() {
 
             Message response;
             const char error[] = "Invalid message type.";
+
+            pthread_mutex_lock(&ut_lock);
             Thread* culprit = get_thread_by_username(from_thread.sender_name);
+            pthread_mutex_unlock(&ut_lock);
 
             if (culprit == NULL) {
               fprintf(stderr,
@@ -215,11 +216,22 @@ int main() {
  * @param message The message to send
  */
 static void whisper(Message message) {
+  pthread_mutex_lock(&ut_lock);
   Thread* destination = get_thread_by_username(message.receiver_name);
+  pthread_mutex_unlock(&ut_lock);
 
   if (destination != NULL) {
+#ifdef __DEBUG__
+    int i;
+    printf("%s User \"%s\" is whispering to \"%s\" :: ",
+      timestamp(), message.sender_name, message.receiver_name);
+    for (i = 0; i < (signed)(message.size); i++)
+      printf("%02x ", message.body[i] & 0xff);
+    printf("\n");
+#else
     printf("%s User \"%s\" is whispering to \"%s\"\n",
       timestamp(), message.sender_name, message.receiver_name);
+#endif
 
     write(destination->pipe_fd[PW], &message, sizeof(Message));
   } else {
@@ -229,7 +241,9 @@ static void whisper(Message message) {
     // >> Uh oh! Couldn't find user
     Message response;
     const char error[] = "Could not find a user with that name.";
+    pthread_mutex_lock(&ut_lock);
     Thread* culprit = get_thread_by_username(message.sender_name);
+    pthread_mutex_unlock(&ut_lock);
 
     response.type = USR_ERROR;
     response.size = strlen(error) + 1;
@@ -253,19 +267,28 @@ static void broadcast(Message message) {
 
   // If it's a MSG_ message
   if ((message.type & MASK_TYPE) == MSG_IS_MSG) {
+#ifdef __DEBUG__
+    int i;
+    printf("%s User \"%s\" is broadcasting :: ",
+      timestamp(), message.sender_name);
+    for (i = 0; i < (signed)(message.size); i++)
+      printf("%02x ", message.body[i] & 0xff);
+    printf("\n");
+#else
     printf(
       "%s User \"%s\" is broadcasting\n",
       timestamp(), message.sender_name
     );
+#endif
   } else {
     printf("%s Server is broadcasting\n", timestamp());
   }
 
+  pthread_mutex_lock(&ut_lock);
+
   // >> Get source so as to not re-send to source user
   Thread* source = get_thread_by_username(message.sender_name);
 
-  pthread_mutex_lock(&users_lock);
-  pthread_mutex_lock(&threads_lock);
 
   // >> Send all the messages to their threads
   for (i = 0; i < CONN_LIMIT; i++) {
@@ -287,8 +310,7 @@ static void broadcast(Message message) {
     }
   }
 
-  pthread_mutex_unlock(&threads_lock);
-  pthread_mutex_unlock(&users_lock);
+  pthread_mutex_unlock(&ut_lock);
 }
 
 
@@ -334,7 +356,10 @@ error:;
   printf("%s Command failed\n", timestamp());
 
 send_response:;
+  pthread_mutex_lock(&ut_lock);
   Thread* reply_to = get_thread_by_username(message.sender_name);
+  pthread_mutex_unlock(&ut_lock);
+
   write(reply_to->pipe_fd[PW], &response, sizeof(Message));
 
   // Hmmm... maybe I am getting too comfortable with goto statements. Oh well, I
@@ -414,15 +439,13 @@ static int spawn_thread() {
 
   // >> Find the first empty spot in the Users array to put this new connection
 
-  pthread_mutex_lock(&users_lock);
-  pthread_mutex_lock(&threads_lock);
+  pthread_mutex_lock(&ut_lock);
 
   for (i = 0; i <= CONN_LIMIT; i++) {
     if (i == CONN_LIMIT) { // Didn't find any free spots
       fprintf(stderr, "Max connections reached, rejecting connection\n");
 
-      pthread_mutex_unlock(&threads_lock);
-      pthread_mutex_unlock(&users_lock);
+      pthread_mutex_unlock(&ut_lock);
 
       response.type = SRV_ERROR;
       strcpy(res_msg, "Server is full");
@@ -430,7 +453,18 @@ static int spawn_thread() {
     } else if (users[i].socket_fd == -1) break; // i is a free spot
   }
 
+  // >> Check if there's anybody else with that name
+
+  if (get_thread_by_username(request.sender_name)) {
+    pthread_mutex_unlock(&ut_lock);
+
+    response.type = USR_ERROR;
+    strcpy(res_msg, "There is already a user with that username");
+    goto send_response;
+  }
+
   // >> Store user information and release users array
+
   users[i].socket_fd = client_sock;
   strncpy(users[i].username, request.sender_name, USERNAME_MAX);
   User* new_user = users + i; // keep track of user pointer
@@ -444,8 +478,7 @@ static int spawn_thread() {
       users[i].socket_fd = -1;
       memset(users[i].username, 0, USERNAME_MAX);
 
-      pthread_mutex_unlock(&threads_lock);
-      pthread_mutex_unlock(&users_lock);
+      pthread_mutex_unlock(&ut_lock);
 
       response.type = SRV_ERROR;
       strcpy(res_msg, "Server is full");
@@ -470,8 +503,7 @@ static int spawn_thread() {
   // >> Create thread and release threads array
   pthread_create(&threads[i].id, NULL, client_thread, (void*)&threads[i]);
 
-  pthread_mutex_unlock(&threads_lock);
-  pthread_mutex_unlock(&users_lock);
+  pthread_mutex_unlock(&ut_lock);
 
   // >> Respond to client
   response.type = SRV_RESPONSE;

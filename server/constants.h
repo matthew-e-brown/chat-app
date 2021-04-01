@@ -48,8 +48,7 @@ typedef struct server_thread {
 extern User users[CONN_LIMIT];         // Holds all users' metadata
 extern Thread threads[CONN_LIMIT];     // Holds all client thread metadata
 
-extern pthread_mutex_t threads_lock;   // Locks access to 'threads'
-extern pthread_mutex_t users_lock;     // Locks access to 'users'
+extern pthread_mutex_t ut_lock;       // Locks access to 'users' and 'threads'
 
 extern int master_sock;                // Bound listener socket
 extern struct sockaddr_in master_addr; // Address of the bound socket

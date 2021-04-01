@@ -50,7 +50,7 @@
 #define SRV_ANNOUNCE   ((unsigned short)(0x2001))  // Server is announcing an update to all clients
 #define SRV_RESPONSE   ((unsigned short)(0x2002))  // Server is replying to an individual client
 #define SRV_ERROR      ((unsigned short)(0x200e))  // Server says, "something went wrong"; HTTP 500
-#define USR_ERROR      ((unsigned short)(0x200f))  // Server says, "user did sometihng wrong"; 400
+#define USR_ERROR      ((unsigned short)(0x200f))  // Server says, "user did something wrong"; 400
 
 #define MASK_TYPE      ((unsigned short)(0xf000))  // Mask to check category
 #define MSG_IS_ACK     ((unsigned short)(0x0000))  // The form after masking of a ACK_ type message

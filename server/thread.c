@@ -152,8 +152,7 @@ void* client_thread(void* arg) {
   }
 
 exit_thread:
-  pthread_mutex_lock(&users_lock);
-  pthread_mutex_lock(&threads_lock);
+  pthread_mutex_lock(&ut_lock);
 
   this->in_use = 0;
   close(this->pipe_fd[PR]);
@@ -161,8 +160,7 @@ exit_thread:
   close(this->user->socket_fd);
   this->user->socket_fd = -1;
 
-  pthread_mutex_unlock(&threads_lock);
-  pthread_mutex_unlock(&users_lock);
+  pthread_mutex_unlock(&ut_lock);
 
   pthread_exit(NULL);
 }
