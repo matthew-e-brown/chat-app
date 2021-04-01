@@ -64,6 +64,29 @@ and the manual page for `SHA1`.
 - [Fix for `EINTR` when resizing terminal screen][eintr]
 
 
+## Assignment 4
+
+The fourth and final assignment was to create a rudimentary form of "encryption"
+for our clients to use to hide the plain-text of the messages as they pass over
+the wire and through the server.
+
+Of course, since this is a small school assignment, implementing real encryption
+would be far out of scope. So, instead, we were instructed to use a simple
+cipher. The may mine works is detailed in
+[`client/encoding.c`](client/encoding.c).
+
+If (and **only** if) the server is compiled with the `__DEBUG__` flag set (`make
+d-server` or `make d-both`), it will print out the bytes of messages as they are
+sent, to show that it cannot see the plain-text of the clients' messages.
+
+
+### References
+
+For this assignment, the only piece of code that was used from outside was John
+Regehr's left- and right-rotate functions. They come from [his blog][rotate].
+
+
+
 [ncurses-1]: https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 [ncurses-2]: http://www.cs.ukzn.ac.za/~hughm/os/notes/ncurses.html
 [ncurses-3]: https://www.linuxjournal.com/content/programming-color-ncurses
@@ -73,3 +96,5 @@ and the manual page for `SHA1`.
 [ncurses-4]: https://lists.gnu.org/archive/html/bug-ncurses/2014-01/msg00007.html
 [sha1-man]: https://linux.die.net/man/3/sha1
 [eintr]: https://stackoverflow.com/a/6870391/10549827
+
+[rotate]: https://blog.regehr.org/archives/1063

@@ -1,24 +1,56 @@
+/**
+ * COIS-4310H: Chat App
+ *
+ * @name:         Chat App -- Message Encoding
+ *
+ * @author:       Matthew Brown, #0648289
+ * @date:         March 29th to April 1st, 2021
+ *
+ * @purpose:      Holds code for "encoding" and "decoding" messages that are
+ *                going to another client.
+ *
+ */
+
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
 
-#include <assert.h>
 #include <limits.h>
 
+#include "./encoding.h"
+
+
+// Random set of bytes used to obfuscate messages
 const uint8_t key[32] = {
   0x14, 0x99, 0xd0, 0xc9, 0x31, 0x83, 0x52, 0x5b, 0x7d, 0x5a, 0x0a, 0xe5, 0x96,
   0x24, 0xf3, 0x23, 0x2e, 0x8b, 0x09, 0xad, 0x58, 0x13, 0x0c, 0x29, 0xcd, 0x8b,
   0x58, 0x81, 0xea, 0x2a, 0xd0, 0x46
 };
 
+
+/**
+ * Rotate the bits of a number left
+ * @param n The number to rotate
+ * @param i The number of times to rotate-left
+ * @returns The rotated number
+ */
 static inline uint32_t rotl32(uint32_t n, uint32_t i) {
   return ( n << i ) | ( n >> (-i & 31) );
 }
 
+
+/**
+ * Rotate the bits of a number to the right
+ * @param n The number to rotate
+ * @param i The number of times to rotate-right
+ * @returns The rotated number
+ */
 static inline uint32_t rotr32(uint32_t n, uint32_t i) {
   return ( n >> i ) | ( n << (-i & 31) );
 }
+
 
 ssize_t encode(const unsigned char *msg, size_t length, unsigned char **buff) {
   int i, o;
@@ -36,7 +68,7 @@ ssize_t encode(const unsigned char *msg, size_t length, unsigned char **buff) {
   // 1.  Put the 1st byte of the four into the highest 8 bits of a 32-bit
   //     integer, called 'p', the 2nd byte into the second highest, etc.
   // 2.  Select a character 'c' from the key string using the formula:
-  //     > 'c' = key [ (i * msg_len) mod key_len ]
+  //     > 'c' = key [ (i * msg_len) % key_len ]
   // 3.  Rotate 'p' left 'c' times
   // 4.  XOR 'p' with 'c' repeated four times (ie, if the 8-bit is '01101100',
   //     XOR with '01101100 01101100 01101100 01101100').
@@ -99,7 +131,7 @@ size_t decode(const unsigned char *buff, unsigned char **msg) {
   // 1.  Put the 1st byte of the four into the lowest bytes of a 32-bit integer,
   //     'p', 2nd byte into the second-lowest, etc.
   // 2.  Get the c'th character of the key as an 8-bit integer from the formula:
-  //     > 'c' = key [ (i * msg_len) mod key_len ]
+  //     > 'c' = key [ (i * msg_len) % key_len ]
   // 3.  Create a 32-bit integer by repeating the 8-bits four times, and XOR 'p'
   //     with it.
   // 4.  Rotate 'p' right 'c' times.

@@ -1,19 +1,11 @@
  RFC: 4310-0648289
 
-!!!  ----------------------------------------------------------------------  !!!
-
-THIS RFC SPECIFICATION IS NOW OUTDATED. PLEASE REFER TO VERSION 3 FOR ACCURATE
-DOCUMENTATION.
-
-!!!  ----------------------------------------------------------------------  !!!
-
-
                         MESSAGING PROTOCOL SPECIFICATION                        
 
                                   MATTHEW BROWN                                 
                                    MARCH 2021                                   
 
-                                  RFC VERSION 2                                 
+                                  RFC VERSION 3                                 
 
 
 
@@ -188,6 +180,11 @@ header and a variable sized payload.
     are all between 0x1000-0x1fff, and messages sent by the server are all
     between 0x2000-0x2fff. This allows for the use of an 0xf000 bit-mask to
     check message sets, should that ever come up.
+
+    Additionally, the second lowest nibble can be used for attributes of the
+    respective message type. For example, setting it to 0x1 tells other clients
+    that it is encoded. This feature is in beta; more attributes and stricter
+    handling of encoding are to be added in the future.
 
     These actions are detailed further in the MESSAGE TYPES section.
 

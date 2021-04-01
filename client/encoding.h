@@ -1,5 +1,5 @@
-#ifndef __SHARED_ENCODING__
-#define __SHARED_ENCODING__
+#ifndef __CLIENT_ENCODING__
+#define __CLIENT_ENCODING__
 
 #include <stdlib.h>
 
