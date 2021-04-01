@@ -41,7 +41,7 @@ extern char my_username[USERNAME_MAX];  // User's username
 extern unsigned int pos;                // Tracked cursor pos in the buffer
 
 // Displayed at the start of the program
-extern const char welcome_message[];
+extern const char help_message[];
 
 extern const char prompt_message[];  // Displayed in prompt
 extern const size_t prompt_length;   // Length without \0

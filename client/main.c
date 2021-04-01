@@ -65,9 +65,8 @@ unsigned int pos = 0;
 const char prompt_message[] = "Enter a message: >>";
 const size_t prompt_length = 19;
 
-const char welcome_message[] =
-  "Hello! Welcome to the app. Type your messages in one of the following "
-  "formats:\n"
+const char help_message[] =
+  "Type your messages in one of the following formats:\n"
   "\n"
   "    [message]\n"
   "      -> Broadcast your message to all connected users.\n"
@@ -77,10 +76,12 @@ const char welcome_message[] =
   "      -> Run a command.\n"
   "\n"
   "Commands are as follows:\n"
-  "    " COMMAND_MARK "bye\n"
+  "    " COMMAND_MARK "exit, " COMMAND_MARK "bye\n"
   "      -> Leave the server and close the app.\n"
   "    " COMMAND_MARK "who\n"
   "      -> See all currently connected users.\n"
+  "    " COMMAND_MARK "help\n"
+  "      -> Read this message again.\n"
   "\n"
   "Use [CTRL]+[ENTER] for new-lines and [ENTER] to send.";
 
@@ -165,14 +166,22 @@ int main(int argc, char* argv[]) {
 
           if (request.size == 0) continue;
 
-          // >> Hardcode checking for if the command is '/bye'
-          if (
-            request.type == MSG_COMMAND &&                // is a command that
-            (
+          // >> Hardcoded client-intercepted commands
+
+          if (request.type == MSG_COMMAND) {
+            if (
               strstr(request.body, "bye") == request.body || // starts with bye
               strstr(request.body, "exit") == request.body   // or with exit
-            )
-          ) goto exit;
+            ) {
+              goto exit;
+            }
+
+            else if (strstr(request.body, "help") == request.body) {
+              wprintw(chat_window, "%s\n\n", help_message);
+              wrefresh(chat_window);
+              goto refresh;
+            }
+          }
 
           display_own_message(request);
 
@@ -187,6 +196,7 @@ int main(int argc, char* argv[]) {
 
           send_message(server_sock, request);
 
+refresh:;
           // Extra check not to free the main message buffer because I don't
           // trust myself
           if (request.body != NULL && request.body != current_message)
@@ -239,7 +249,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  exit:;
+exit:;
 
   // Can leave unfreed memory as is, since this is the very end of the program.
   // I have faith in the OS to take back everything it allocated the program.
@@ -289,7 +299,7 @@ static void setup_curses() {
   chat_window = newwin(LINES - 7, COLS - 4, 1, 2);
   scrollok(chat_window, TRUE);
   wmove(chat_window, 0, 0);
-  wprintw(chat_window, welcome_message);
+  wprintw(chat_window, "Hello! Welcome to the app. %s", help_message);
   wprintw(chat_window, "\n<<------------------------>>\n\n");
 
   // Pad needs to be big enough to hold all possible characters, even if they're
@@ -328,7 +338,7 @@ static void parse_args(int argc, char* argv[], in_addr_t* addr) {
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       // >> They need help, so print usage message and abort
-      printf("ONCE YOU'RE INSIDE:\n%s\n\n", welcome_message);
+      printf("ONCE YOU'RE INSIDE:\n%s\n\n", help_message);
       printf("STARTING THE APP: ");
       f = stdout;
       goto print_usage;
@@ -429,7 +439,7 @@ static void server_login(int* sock_fd, struct sockaddr* addr, socklen_t* size) {
 
     if (response.size > 0 && response.body != NULL) {
       fprintf(stderr, "%s error. Server said, \"%s\"\n",
-        response.body, (response.type == USR_ERROR) ? "User" : "Server");
+        (response.type == USR_ERROR) ? "User" : "Server", response.body);
       free(response.body);
     } else {
       fprintf(stderr, "An unknown error occurred. Could not log in.\n");
