@@ -1,10 +1,23 @@
 # Client-Server Chat Application
 
-Rather than calling this folder `assignment1`, `assignment2`, or something of
-the sort, this folder is just called `chat-app`. This is because the same
-project is used for all of the assignments of COIS-4310, and it is simply built
-upon. This repository will have tagged commits for the points `chat-app` was in
-when each Assignment was handed in.
+## Preamble
+
+This repo holds the code for my main project throughout most of COIS-4310H
+(Computer Networking) at Trent University. It has been split off from my main
+COIS-4310H repository so that I can have it public and show it off.
+
+When you're reading through it, keep in mind that it was done for a class in
+order to learn the basics of computer networking; I won't be making updates for
+correctness or bug fixes because this is meant to show my schoolwork. If I do
+ever make any updates, they'll be in another branch.
+
+
+## Introduction
+
+Because this single project was used for assignments one, two, and four, I have
+opted to keep them all in a single directory and simply tag the points at which
+they were handed in. That way, I don't run into a situation where I have
+`assignment1` with almost exactly the same files as `assignment2`.
 
 Documentation is very important to the professor, and this README will actually
 be handed in alongside the code at every due date. As such, it *may* have some
