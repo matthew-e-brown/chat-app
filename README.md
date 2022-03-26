@@ -6,10 +6,14 @@ This repo holds the code for my main project throughout most of COIS-4310H
 (Computer Networking) at Trent University. It has been split off from my main
 COIS-4310H repository so that I can have it public and show it off.
 
-When you're reading through it, keep in mind that it was done for a class in
-order to learn the basics of computer networking; I won't be making updates for
-correctness or bug fixes because this is meant to show my schoolwork. If I do
-ever make any updates, they'll be in another branch.
+The code in here is not perfect. **There are memory leaks.** When you're reading
+through it, keep in mind that it was done for class, and that the purpose of
+that class was to learn how networking (HTTP, TCP, UDP, sockets, etc.)
+works&mdash;becoming a C-master was not the focus, and this class was only the
+second time I had used C.
+
+I won't be making updates for correctness or bug fixes because this is meant to
+show my schoolwork. If I do ever make any updates, they'll be in another branch.
 
 
 ## Introduction
@@ -18,6 +22,11 @@ Because this single project was used for assignments one, two, and four, I have
 opted to keep them all in a single directory and simply tag the points at which
 they were handed in. That way, I don't run into a situation where I have
 `assignment1` with almost exactly the same files as `assignment2`.
+
+The "RFCs" for each of the versions of the assignment will however be kept, so
+as to emulate the sort of backwards compatibility found in real RFCs.
+Because of this, rather than adopting SEMVER, each RFC simply completely
+obsoletes the previous one&mdash;no matter how small the change.
 
 Documentation is very important to the professor, and this README will actually
 be handed in alongside the code at every due date. As such, it *may* have some
@@ -75,6 +84,11 @@ and the manual page for `SHA1`.
 - [Curses "erase" vs "clear" question][ncurses-4]
 - [sha1(3) &mdash; Linux manual page][sha1-man]
 - [Fix for `EINTR` when resizing terminal screen][eintr]
+
+
+## Assignment 3
+
+The third assignment was unrelated.
 
 
 ## Assignment 4
